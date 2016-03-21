@@ -123,6 +123,17 @@ string Vector::value_str() const {
     return s.str();
 }
 
+string Vector::prev_value_str() const {
+    stringstream s;
+
+    for(map<int, Variable*>::const_iterator it = val_.begin();
+            it != val_.end(); ++it) {
+        s << it->second->prev_value_str();
+    }
+
+    return s.str();
+}
+
 Scalar::Scalar(const string&name, const string&identifier, type_t type)
     : Variable(name, identifier, type), val_('?'), prev_val_('?') {
     if(type == SUPPLY0)
@@ -142,6 +153,10 @@ string Scalar::full_name() const {
 
 string Scalar::value_str() const {
     return string(1, val_);
+}
+
+string Scalar::prev_value_str() const {
+    return string(1, prev_val_);
 }
 
 Alias::Alias(const string&name, Variable*target)

@@ -91,6 +91,7 @@ public:
 
     virtual void set_value(value_t value) = 0;
     virtual std::string value_str() const = 0;
+    virtual std::string prev_value_str() const = 0;
 
     inline bool operator==(const Variable&other) const {
         return (value_str() == other.value_str());
@@ -147,6 +148,7 @@ public:
     void set_value(const std::string&value);
 
     std::string value_str() const;
+    std::string prev_value_str() const;
 
     inline bool is_valid_idx(int idx) const {
         return ((left_idx_ >= idx && idx >= right_idx_) ||
@@ -184,14 +186,16 @@ public:
     }
 
     void set_value(value_t value) {
+        prev_val_ = val_;
         val_ = toupper(value);
         assert(val_ == '0' || val_ == '1' || val_ == 'X' || val_ == 'Z');
     }
 
     std::string value_str() const;
+    std::string prev_value_str() const;
 
 private:
-    value_t val_;
+    value_t val_, prev_val_;
 };
 
 class Alias : public Variable {
@@ -224,6 +228,10 @@ public:
 
     std::string value_str() const {
         return target_->value_str();
+    }
+
+    std::string prev_value_str() const {
+        return target_->prev_value_str();
     }
 
 private:

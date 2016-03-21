@@ -18,6 +18,7 @@
 
 #include "link.h"
 #include "variable.h"
+#include "options.h"
 
 using namespace std;
 
@@ -28,15 +29,28 @@ Link::Link(const Variable*first, const Variable*second)
 }
 
 bool Link::compare() const {
-    return (first_->value_str() == second_->value_str());
+    return ((first_->value_str() == second_->value_str())
+        && (compare_states || first_->prev_value_str() == second_->prev_value_str()));
 }
 
 ostream&operator<<(ostream&out, const Link&link) {
     const Variable*var1 = link.first();
     const Variable*var2 = link.second();
 
-    out << *var1 << "\t= " << var1->value_str() << endl;
-    out << *var2 << "\t= " << var2->value_str() << endl;
+    out << *var1 << "\t= ";
+
+    if(!compare_states)
+        out << var1->prev_value_str() << " -> ";
+
+    out << var1->value_str() << endl;
+
+
+    out << *var2 << "\t= ";
+
+    if(!compare_states)
+        out << var2->prev_value_str() << " -> ";
+
+    out<< var2->value_str() << endl;
 
     return out;
 }

@@ -29,5 +29,7 @@ extern bool warn_missing_tstamps;
 extern bool warn_duplicate_vars;
 extern bool warn_unexpected_tokens;
 
+extern bool compare_states;
+
 #endif /* OPTIONS_H */
 

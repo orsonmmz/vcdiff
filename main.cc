@@ -73,6 +73,8 @@ option warn_options[] = {
     { NULL, NULL }
 };
 
+bool compare_states = false;
+
 //bool show_unmatched_vars = false;    // TODO
 //bool match_individual_scalars = false; // TODO
 
@@ -86,6 +88,10 @@ int main(int argc, char*argv[]) {
         cerr << endl;
 
         cerr << "Options: " << endl;
+
+        cerr << "-s\t\t\tCompares states instead of transitions." << endl;
+
+        cerr << endl;
         cerr << "-i<flag>\t\tModifies rules when mapping variables between files, "
             "<flag> might be:" << endl;
         for(opt_ptr = ignore_options; opt_ptr->name; ++opt_ptr)
@@ -100,7 +106,7 @@ int main(int argc, char*argv[]) {
         return 0;
     }
 
-    while((opt = getopt(argc, argv, "i:W:")) != -1) {
+    while((opt = getopt(argc, argv, "i:W:s")) != -1) {
         switch(opt) {
             case 'i':
                 for(opt_ptr = ignore_options; opt_ptr->name; ++opt_ptr) {
@@ -127,6 +133,9 @@ int main(int argc, char*argv[]) {
                 }
                 break;
 
+            case 's':
+                compare_states = true;
+                break;
         }
     }
 
