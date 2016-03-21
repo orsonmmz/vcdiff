@@ -124,8 +124,8 @@ string Vector::value_str() const {
 }
 
 Scalar::Scalar(const string&name, const string&identifier, type_t type)
-    : Variable(name, identifier, type), val_('X') {
-    if(type == SUPPLY0)     // TODO necessary?
+    : Variable(name, identifier, type), val_('?'), prev_val_('?') {
+    if(type == SUPPLY0)
         val_ = 0;
     else if(type == SUPPLY1)
         val_ = 1;
