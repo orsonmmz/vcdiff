@@ -92,7 +92,7 @@ int main(int argc, char*argv[]) {
         cerr << "-s\t\t\tCompares states instead of transitions." << endl;
 
         cerr << endl;
-        cerr << "-i<flag>\t\tModifies rules when mapping variables between files, "
+        cerr << "-r<flag>\t\tModifies rules when mapping variables between files, "
             "<flag> might be:" << endl;
         for(opt_ptr = ignore_options; opt_ptr->name; ++opt_ptr)
             cerr << "\t" << opt_ptr->name << "\t\t" << opt_ptr->desc << endl;
@@ -106,9 +106,9 @@ int main(int argc, char*argv[]) {
         return 0;
     }
 
-    while((opt = getopt(argc, argv, "i:W:s")) != -1) {
+    while((opt = getopt(argc, argv, "r:W:s")) != -1) {
         switch(opt) {
-            case 'i':
+            case 'r':
                 for(opt_ptr = ignore_options; opt_ptr->name; ++opt_ptr) {
                     if(!strcmp(optarg, opt_ptr->name)) {
                         *opt_ptr->bool_switch = true;
