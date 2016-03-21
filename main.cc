@@ -67,7 +67,7 @@ option warn_options[] = {
     //{ "missing-time",   &warn_missing_time,
         //"Do not warn about timestamps that do not occur in one of the files." },
     { "dup-var",        &warn_duplicate_vars,
-        "Do not warn about duplicated variables (it is normal in VCD files)." },
+        "\tDo not warn about duplicated variables (it is normal in VCD files)." },
     { "unexp-token",    &warn_unexpected_tokens,
         "Do not warn about unexpected tokens." },
     { NULL, NULL }
