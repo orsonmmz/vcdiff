@@ -1,11 +1,18 @@
 CXXFLAGS=-O2 -Wall -g
+EXE=vcdiff
 
-all: vcdiff
+all: $(EXE)
 
-vcdiff: main.o comparator.o link.o scope.o tokenizer.o variable.o vcdfile.o
+$(EXE): main.o comparator.o link.o scope.o tokenizer.o variable.o vcdfile.o
 	$(CXX) $(LDFLAGS) $^ -o $@
 
 clean:
 	rm *.o
 
-.PHONY: clean
+install:
+	cp $(EXE) /usr/local/bin
+
+uninstall:
+	rm /usr/local/bin/$(EXE)
+
+.PHONY: clean install uninstall
