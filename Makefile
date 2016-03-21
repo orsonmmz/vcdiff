@@ -1,18 +1,27 @@
-CXXFLAGS=-O2 -Wall -g
-EXE=vcdiff
+CXXFLAGS=-O2 -Wall
+BIN=vcdiff
 
-all: $(EXE)
+SRCS=main.cc comparator.cc link.cc scope.cc tokenizer.cc variable.cc vcdfile.cc
+OBJS=$(SRCS:.cc=.o)
+DEPS=$(OBJS:.o=.d)
 
-$(EXE): main.o comparator.o link.o scope.o tokenizer.o variable.o vcdfile.o
+all: $(BIN)
+
+$(BIN): $(OBJS)
 	$(CXX) $(LDFLAGS) $^ -o $@
 
+%.o: %.cc
+	$(CXX) $(CXXFLAGS) -c -MMD $<
+
 clean:
-	rm *.o
+	rm $(BIN) $(OBJS) $(DEPS) || true
 
 install:
-	cp $(EXE) /usr/local/bin
+	cp $(BIN) /usr/local/bin
 
 uninstall:
-	rm /usr/local/bin/$(EXE)
+	rm /usr/local/bin/$(BIN)
+
+-include $(DEPS)
 
 .PHONY: clean install uninstall
