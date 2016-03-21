@@ -25,13 +25,13 @@ class Variable;
 
 class Link {
 public:
-    Link(const Variable*first, const Variable*second);
+    Link(Variable*first, Variable*second);
 
-    inline const Variable*first() const {
+    inline Variable*first() const {
         return first_;
     }
 
-    inline const Variable*second() const {
+    inline Variable*second() const {
         return second_;
     }
 
@@ -41,8 +41,8 @@ public:
     bool compare() const;
 
 private:
-    const Variable*first_;
-    const Variable*second_;
+    Variable*first_;
+    Variable*second_;
 };
 
 std::ostream&operator<<(std::ostream&out, const Link&link);

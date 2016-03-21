@@ -134,6 +134,23 @@ string Vector::prev_value_str() const {
     return s.str();
 }
 
+bool Vector::changed() const {
+    for(map<int, Variable*>::const_iterator it = val_.begin();
+            it != val_.end(); ++it) {
+        if(it->second->changed())
+            return true;
+    }
+
+    return false;
+}
+
+void Vector::clear_transition() {
+    for(map<int, Variable*>::const_iterator it = val_.begin();
+            it != val_.end(); ++it) {
+        it->second->clear_transition();
+    }
+}
+
 Scalar::Scalar(const string&name, const string&identifier, type_t type)
     : Variable(name, identifier, type), val_('?'), prev_val_('?') {
     if(type == SUPPLY0)

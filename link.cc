@@ -22,7 +22,7 @@
 
 using namespace std;
 
-Link::Link(const Variable*first, const Variable*second)
+Link::Link(Variable*first, Variable*second)
     : first_(first), second_(second) {
     assert(first && second);
     assert(first_->size() == second_->size());
@@ -39,7 +39,7 @@ ostream&operator<<(ostream&out, const Link&link) {
 
     out << *var1 << "\t= ";
 
-    if(!compare_states)
+    if(!compare_states && var1->changed())
         out << var1->prev_value_str() << " -> ";
 
     out << var1->value_str() << endl;
@@ -47,7 +47,7 @@ ostream&operator<<(ostream&out, const Link&link) {
 
     out << *var2 << "\t= ";
 
-    if(!compare_states)
+    if(!compare_states && var2->changed())
         out << var2->prev_value_str() << " -> ";
 
     out<< var2->value_str() << endl;

@@ -93,6 +93,9 @@ public:
     virtual std::string value_str() const = 0;
     virtual std::string prev_value_str() const = 0;
 
+    virtual bool changed() const = 0;
+    virtual void clear_transition() = 0;
+
     inline bool operator==(const Variable&other) const {
         return (value_str() == other.value_str());
     }
@@ -150,6 +153,9 @@ public:
     std::string value_str() const;
     std::string prev_value_str() const;
 
+    bool changed() const;
+    void clear_transition();
+
     inline bool is_valid_idx(int idx) const {
         return ((left_idx_ >= idx && idx >= right_idx_) ||
                 (left_idx_ <= idx && idx <= right_idx_));
@@ -194,6 +200,14 @@ public:
     std::string value_str() const;
     std::string prev_value_str() const;
 
+    bool changed() const {
+        return prev_val_ != val_;
+    }
+
+    void clear_transition() {
+        prev_val_ = val_;
+    }
+
 private:
     value_t val_, prev_val_;
 };
@@ -232,6 +246,14 @@ public:
 
     std::string prev_value_str() const {
         return target_->prev_value_str();
+    }
+
+    bool changed() const {
+        return target_->changed();
+    }
+
+    void clear_transition() {
+        target_->clear_transition();
     }
 
 private:

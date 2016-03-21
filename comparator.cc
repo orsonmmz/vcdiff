@@ -237,6 +237,12 @@ void Comparator::check_value_changes() {
 
                 cout << *link << endl;
             }
+
+            // Clear the transition
+            if(!compare_states) {
+                link->first()->clear_transition();
+                link->second()->clear_transition();
+            }
         }
     }
 }
