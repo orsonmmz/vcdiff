@@ -101,14 +101,11 @@ int main(int argc, char*argv[]) {
     }
 
     while((opt = getopt(argc, argv, "i:W:")) != -1) {
-        bool valid = false;
-
         switch(opt) {
             case 'i':
                 for(opt_ptr = ignore_options; opt_ptr->name; ++opt_ptr) {
                     if(!strcmp(optarg, opt_ptr->name)) {
                         *opt_ptr->bool_switch = true;
-                        valid = true;
                         break;
                     }
                 }
@@ -118,29 +115,18 @@ int main(int argc, char*argv[]) {
                 for(opt_ptr = warn_options; opt_ptr->name; ++opt_ptr) {
                     if(!strcmp(optarg, opt_ptr->name)) {
                         *opt_ptr->bool_switch = false;
-                        valid = true;
                         break;
                     }
                 }
 
                 // Disable all warnings
-                if(!valid && !strcmp(optarg, "all")) {
+                if(!strcmp(optarg, "all")) {
                     for(opt_ptr = warn_options; opt_ptr->name; ++opt_ptr) {
                         *opt_ptr->bool_switch = false;
-                        valid = true;
                     }
                 }
                 break;
-        }
 
-        if(!valid) {
-            cerr << "unrecognized option -" << (char)opt;
-
-            if(optarg)
-                cerr << optarg;
-
-            cerr << endl;
-            return 0;
         }
     }
 
