@@ -200,9 +200,7 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
     unsigned long tstamp;
 
     while(true) {
-        tokenizer_.get(token, sizeof(token));
-
-        if(!tokenizer_.valid()) {
+        if(!tokenizer_.get(token, sizeof(token))) {
             DBG("file %s finished", filename_.c_str());
             return false;
         }

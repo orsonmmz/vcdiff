@@ -49,7 +49,8 @@ bool Tokenizer::get(char*dest, int max_len) {
     // Null-terminate
     *dest = 0;
 
-    return valid();
+    // Check if we have read anything
+    return (i != 0);
 }
 
 bool Tokenizer::expect(const char*token) {

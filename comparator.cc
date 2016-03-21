@@ -22,6 +22,8 @@
 #include "options.h"
 #include "debug.h"
 
+#include <limits>
+
 // TODO adapt timescales if they are different
 
 using namespace std;
@@ -178,19 +180,26 @@ void Comparator::map_signals(Scope&scope1, Scope&scope2) {
 }
 
 void Comparator::check_value_changes() {
-    while(file1_.valid() && file2_.valid()) {
-        unsigned long next_event1 = file1_.next_timestamp();
-        unsigned long next_event2 = file2_.next_timestamp();
+    bool file1_ok = file1_.valid();
+    bool file2_ok = file2_.valid();
+
+    while(file1_ok || file2_ok) {
+        // If one of the file has finished, set its next timestamp to MAX,
+        // so only events from the other file are processed.
+        unsigned long next_event1 = file1_ok ?
+            file1_.next_timestamp() : numeric_limits<unsigned long>::max();
+        unsigned long next_event2 = file2_ok ?
+            file2_.next_timestamp() : numeric_limits<unsigned long>::max();
         unsigned long current_time;
         set<const Link*> changes;
 
         if(next_event1 == next_event2) {
-            file1_.next_delta(changes);
-            file2_.next_delta(changes);
+            file1_ok = file1_.next_delta(changes);
+            file2_ok = file2_.next_delta(changes);
             current_time = next_event1; // == next_event2
 
         } else if(next_event1 > next_event2) {
-            file2_.next_delta(changes);
+            file2_ok = file2_.next_delta(changes);
             current_time = next_event2;
 
             if(warn_missing_tstamps) {
@@ -199,7 +208,7 @@ void Comparator::check_value_changes() {
             }
 
         } else {    // if(next_event1 < next_event2)
-            file1_.next_delta(changes);
+            file1_ok = file1_.next_delta(changes);
             current_time = next_event1;
 
             if(warn_missing_tstamps) {
