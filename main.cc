@@ -86,15 +86,16 @@ int main(int argc, char*argv[]) {
         cerr << endl;
 
         cerr << "Options: " << endl;
-        cerr << "-i<flag>\tModifies rules when mapping variables between files, "
+        cerr << "-i<flag>\t\tModifies rules when mapping variables between files, "
             "<flag> might be:" << endl;
         for(opt_ptr = ignore_options; opt_ptr->name; ++opt_ptr)
-            cerr << "\t" << opt_ptr->name << "\t" << opt_ptr->desc << endl;
+            cerr << "\t" << opt_ptr->name << "\t\t" << opt_ptr->desc << endl;
 
         cerr << endl;
-        cerr << "-W<flag>\tDisables certain warnings, <flag> might be:" << endl;
+        cerr << "-W<flag>\t\tDisables certain warnings, <flag> might be:" << endl;
         for(opt_ptr = warn_options; opt_ptr->name; ++opt_ptr)
             cerr << "\t" << opt_ptr->name << "\t" << opt_ptr->desc << endl;
+        cerr << "\tall\t\tDisables all warnings." << endl;
 
         return 0;
     }
@@ -119,6 +120,14 @@ int main(int argc, char*argv[]) {
                         *opt_ptr->bool_switch = false;
                         valid = true;
                         break;
+                    }
+                }
+
+                // Disable all warnings
+                if(!valid && !strcmp(optarg, "all")) {
+                    for(opt_ptr = warn_options; opt_ptr->name; ++opt_ptr) {
+                        *opt_ptr->bool_switch = false;
+                        valid = true;
                     }
                 }
                 break;
