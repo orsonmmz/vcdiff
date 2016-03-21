@@ -52,6 +52,10 @@ int Comparator::compare() {
         return 2;
     }
 
+    if(file1_.timescale() != file2_.timescale()) {
+        cerr << "Warning: Compared files use different timescales." << endl;
+    }
+
     map_signals(file1_.root_scope(), file2_.root_scope());
     check_value_changes();
 

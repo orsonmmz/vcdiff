@@ -39,6 +39,10 @@ public:
         return filename_;
     }
 
+    inline int timescale() const {
+        return timescale_;
+    }
+
     bool parse_header();
 
     bool next_delta(std::set<const Link*>&changes);
