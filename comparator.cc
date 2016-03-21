@@ -190,20 +190,22 @@ void Comparator::check_value_changes() {
             current_time = next_event1; // == next_event2
 
         } else if(next_event1 > next_event2) {
-            // TODO warning
-            DBG("advancing file2 %s (tstamp1 = %lu tstamp2 = %lu)",
-                    file2_.filename().c_str(), next_event1, next_event2);
-
             file2_.next_delta(changes);
             current_time = next_event2;
 
-        } else {    // if(next_event1 < next_event2)
-            // TODO warning
-            DBG("advancing file1 %s (tstamp1 = %lu tstamp2 = %lu)",
-                    file1_.filename().c_str(), next_event1, next_event2);
+            if(warn_missing_tstamps) {
+                cerr << "Warning: There is no timestamp #" << current_time
+                    << " in " << file1_.filename() << "." << endl;
+            }
 
+        } else {    // if(next_event1 < next_event2)
             file1_.next_delta(changes);
             current_time = next_event1;
+
+            if(warn_missing_tstamps) {
+                cerr << "Warning: There is no timestamp #" << current_time
+                    << " in " << file2_.filename() << "." << endl;
+            }
         }
 
 #ifdef DEBUG

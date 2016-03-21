@@ -25,7 +25,7 @@ extern bool ignore_var_index;
 
 extern bool warn_missing_scopes;
 extern bool warn_missing_vars;
-//extern bool warn_missing_time;
+extern bool warn_missing_tstamps;
 extern bool warn_duplicate_vars;
 extern bool warn_unexpected_tokens;
 

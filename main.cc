@@ -56,7 +56,7 @@ option ignore_options[] = {
 
 bool warn_missing_scopes    = true;
 bool warn_missing_vars      = true;
-bool warn_missing_time      = true;
+bool warn_missing_tstamps   = true;
 bool warn_duplicate_vars    = true;
 bool warn_unexpected_tokens = true;
 option warn_options[] = {
@@ -64,8 +64,8 @@ option warn_options[] = {
         "Do not warn about scopes that do not occur in one of the files." },
     { "missing-var",    &warn_missing_vars,
         "Do not warn about variables that do not occur in one of the files." },
-    //{ "missing-time",   &warn_missing_time,
-        //"Do not warn about timestamps that do not occur in one of the files." },
+    { "missing-tstamp", &warn_missing_tstamps,
+        "Do not warn about timestamps that do not occur in one of the files." },
     { "dup-var",        &warn_duplicate_vars,
         "\tDo not warn about duplicated variables (it is normal in VCD files)." },
     { "unexp-token",    &warn_unexpected_tokens,
