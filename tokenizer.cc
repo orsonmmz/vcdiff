@@ -32,25 +32,37 @@ Tokenizer::~Tokenizer() {
     file_.close();
 }
 
-int Tokenizer::get(char*dest, int max_len) {
-    if(!fill_if_empty())
-        return 0;
-
+int Tokenizer::get(char*&dest) {
     skip_whitespace();
 
-    int i = 0;
-    while(i < max_len - 1 && *buf_ptr_ && !isblank(*buf_ptr_)) {
-        *dest = *buf_ptr_;
-        ++buf_ptr_;
-        ++dest;
-        ++i;
+    if(!fill_if_empty()) {
+        dest = NULL;
+        return 0;
     }
 
-    // Null-terminate
-    *dest = 0;
+    // Set the pointer to a new token
+    dest = buf_ptr_;
+
+    // Move to the next token
+    int len = 0;
+    while(*buf_ptr_ && buf_ptr_ < (buf_ptr_ + sizeof(buf_)) && !isblank(*buf_ptr_)) {
+        ++buf_ptr_;
+        ++len;
+    }
+
+    // If buf_ptr_ == 0, then it is the end of a line, do nothing and load
+    // another one on the next get() call.
+    // If buf_ptr_ != 0, there are more tokens to be processed, continue.
+    if(*buf_ptr_ != 0) {
+        // Null-terminate
+        *buf_ptr_ = 0;
+
+        // Set the pointer to the next token
+        ++buf_ptr_;
+    }
 
     // Return the number of read characters
-    return i;
+    return len;
 }
 
 bool Tokenizer::expect(const char*token) {

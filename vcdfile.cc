@@ -43,7 +43,7 @@ VcdFile::VcdFile(const char*filename)
 bool VcdFile::parse_header() {
     assert(tokenizer_.valid());
 
-    char token[1024];
+    char*token;
 
     // $date section
     if(!tokenizer_.expect("$date")) {
@@ -84,41 +84,39 @@ bool VcdFile::parse_header() {
 
     // Variables section
     while(true) {
-        if(!tokenizer_.valid()) {
+        if(tokenizer_.get(token) == 0) {
             parse_error("unexpected end of file");
             return false;
         }
-
-        tokenizer_.get(token, sizeof(token));
 
         // TODO smart parsing
         if(!strcmp(token, "$var")) {
             Variable::type_t type;
             int size;
-            char name[128];
             char ident[8];
+            char name[128] = { 0, };
 
-            tokenizer_.get(token, sizeof(token));
+            tokenizer_.get(token);
             type = parse_var_type(token);
             if(type == Variable::UNKNOWN) {
                 parse_error("unknown variable type");
                 return false;
             }
 
-            tokenizer_.get(token, sizeof(token));
+            tokenizer_.get(token);
             if(sscanf(token, "%d", &size) != 1) {
                 parse_error("expected variable size");
                 return false;
             }
 
-            tokenizer_.get(ident, sizeof(ident));
-            tokenizer_.get(name, sizeof(name));
+            tokenizer_.get(token);
+            strncpy(ident, token, sizeof(ident));
 
             // Name: concatenate strings, until $end token arrives
-            tokenizer_.get(token, sizeof(token));
+            tokenizer_.get(token);
             while(strcmp(token, "$end") && tokenizer_.valid()) {
                 strncat(name, token, sizeof(name) - strlen(name));
-                tokenizer_.get(token, sizeof(token));
+                tokenizer_.get(token);
             }
 
             if(!ignore_case)
@@ -128,7 +126,7 @@ bool VcdFile::parse_header() {
 
         } else if(!strcmp(token, "$scope")) {
             // Scope type = begin | fork | function | module | task
-            tokenizer_.get(token, sizeof(token));
+            tokenizer_.get(token);
 
             if(strcmp(token, "begin") && strcmp(token, "fork")
                     && strcmp(token, "function") && strcmp(token, "module")
@@ -137,7 +135,7 @@ bool VcdFile::parse_header() {
             }
 
             // Scope name
-            tokenizer_.get(token, sizeof(token));
+            tokenizer_.get(token);
 
             if(!ignore_case)
                 to_lower_case(token);
@@ -196,18 +194,13 @@ bool VcdFile::parse_header() {
 }
 
 bool VcdFile::next_delta(set<const Link*>&changes) {
-    char token[512] = { 0, };
+    char*token;
     unsigned long tstamp;
 
     while(true) {
-        int read_chars = tokenizer_.get(token, sizeof(token));
-
-        if(read_chars == 0) {
+        if(tokenizer_.get(token) == 0) {
             DBG("file %s finished", filename_.c_str());
             return false;
-        } else if(read_chars == sizeof(token) - 1) {
-            parse_warn("line is longer than the buffer, "
-                       "the results might be invalid");
         }
 
         switch(token[0]) {
@@ -239,7 +232,7 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
                 string new_value(&token[1]);
 
                 // Get the variable identifier
-                tokenizer_.get(token, sizeof(token));
+                tokenizer_.get(token);
                 string ident(token);
 
                 VarStringMap::iterator res = var_idents_.find(ident);
@@ -303,12 +296,13 @@ void VcdFile::show_state() const {
 bool VcdFile::parse_timescale() {
     int timebase;
     char timeunit[3];
-    char token[8];
+    char*token;
 
-    tokenizer_.get(token, sizeof(token));
+    tokenizer_.get(token);
     if(sscanf(token, "%d%2s", &timebase, timeunit) == 1) {
         // there must have been a space between timebase and timeunit
-        tokenizer_.get(timeunit, sizeof(timeunit));
+        tokenizer_.get(token);
+        strncpy(timeunit, token, sizeof(timeunit));
     }
 
     switch(timebase) {

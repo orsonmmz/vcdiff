@@ -29,11 +29,11 @@ public:
 
     /*
      * @brief Gets a token (an array of characters without any whitespaces).
-     * @param dest is the variable to save the token.
-     * @param max_len is the size of the dest variable.
+     * @param dest is a pointer that will be set to the obtained token or NULL
+     * in case of failure.
      * @return int number of read characters.
      */
-    int get(char*dest, int max_len);
+    int get(char*&dest);
     bool expect(const char*token);
 
     inline int line_number() const {
