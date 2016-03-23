@@ -27,7 +27,13 @@ public:
     Tokenizer(const std::string&filename);
     ~Tokenizer();
 
-    bool get(char*dest, int max_len);
+    /*
+     * @brief Gets a token (an array of characters without any whitespaces).
+     * @param dest is the variable to save the token.
+     * @param max_len is the size of the dest variable.
+     * @return int number of read characters.
+     */
+    int get(char*dest, int max_len);
     bool expect(const char*token);
 
     inline int line_number() const {

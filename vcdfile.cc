@@ -196,13 +196,18 @@ bool VcdFile::parse_header() {
 }
 
 bool VcdFile::next_delta(set<const Link*>&changes) {
-    char token[128] = { 0, };
+    char token[512] = { 0, };
     unsigned long tstamp;
 
     while(true) {
-        if(!tokenizer_.get(token, sizeof(token))) {
+        int read_chars = tokenizer_.get(token, sizeof(token));
+
+        if(read_chars == 0) {
             DBG("file %s finished", filename_.c_str());
             return false;
+        } else if(read_chars == sizeof(token) - 1) {
+            parse_warn("line is longer than the buffer, "
+                       "the results might be invalid");
         }
 
         switch(token[0]) {

@@ -32,9 +32,9 @@ Tokenizer::~Tokenizer() {
     file_.close();
 }
 
-bool Tokenizer::get(char*dest, int max_len) {
+int Tokenizer::get(char*dest, int max_len) {
     if(!fill_if_empty())
-        return false;
+        return 0;
 
     skip_whitespace();
 
@@ -49,8 +49,8 @@ bool Tokenizer::get(char*dest, int max_len) {
     // Null-terminate
     *dest = 0;
 
-    // Check if we have read anything
-    return (i != 0);
+    // Return the number of read characters
+    return i;
 }
 
 bool Tokenizer::expect(const char*token) {
