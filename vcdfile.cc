@@ -424,7 +424,7 @@ void VcdFile::add_variable(const char*name, const char*ident,
         alias->set_scope(cur_scope_);
 
         if(warn_duplicate_vars) {
-            cerr << "Warning: " << filename_ << ": '" << *alias
+            cerr << "Info: " << filename_ << ": '" << *alias
                 << "' is the same signal as '" << *var_ident
                 << "', creating an alias." << endl;
         }
