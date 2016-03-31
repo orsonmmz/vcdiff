@@ -18,17 +18,20 @@
 
 #include "tokenizer.h"
 
+#include <cstring>
+
 using namespace std;
 
 Tokenizer::Tokenizer(const string&filename)
-    : file_(filename.c_str()), line_number_(0)
+    : file_(filename.c_str()), line_number_(0), buf_size_(1024)
 {
     // Mark buffer as empty
-    buf_[0] = 0;
+    buf_ = new char[buf_size_];
     buf_ptr_ = buf_;
 }
 
 Tokenizer::~Tokenizer() {
+    delete[] buf_;
     file_.close();
 }
 
@@ -45,7 +48,7 @@ int Tokenizer::get(char*&dest) {
 
     // Move to the next token
     int len = 0;
-    while(*buf_ptr_ && buf_ptr_ < (buf_ptr_ + sizeof(buf_)) && !isblank(*buf_ptr_)) {
+    while(*buf_ptr_ && buf_ptr_ < (buf_ptr_ + buf_size_) && !isblank(*buf_ptr_)) {
         ++buf_ptr_;
         ++len;
     }
@@ -97,15 +100,42 @@ bool Tokenizer::fill_if_empty() {
         // Try until we get non-whitespace characters or the file is finished
         while(buf_ptr_[0] == 0 && file_.good()) {
             ++line_number_;
-            file_.getline(buf_, sizeof(buf_));
+            file_.getline(buf_, buf_size_);
+
+            while(file_.fail() && !file_.eof()) {
+                // We have filled the current buffer, but there was no newline,
+                // so resize the buffer and continue reading
+                file_.clear();
+                char*target = inc_buffer();
+                file_.getline(target, buf_size_ / 2);
+            }
+
             skip_whitespace();
         }
     }
+
+    skip_whitespace();
 
     return file_.good();
 }
 
 void Tokenizer::skip_whitespace() {
     while(*buf_ptr_ && isblank(*buf_ptr_)) ++buf_ptr_;
+}
+
+char*Tokenizer::inc_buffer() {
+    assert(buf_ptr_ >= buf_);
+
+    int ptr_offset = buf_ptr_ - buf_;
+    char*new_buf = new char[buf_size_ * 2];
+    char*new_target = &new_buf[buf_size_ - 1];
+    memcpy(new_buf, buf_, buf_size_);
+    delete[] buf_;
+
+    buf_size_ *= 2;
+    buf_ = new_buf;
+    buf_ptr_ = &new_buf[ptr_offset];
+
+    return new_target;
 }
 

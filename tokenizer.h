@@ -21,6 +21,7 @@
 
 #include <fstream>
 #include <string>
+#include <cassert>
 
 class Tokenizer {
 public:
@@ -41,6 +42,7 @@ public:
     }
 
     inline bool valid() const {
+        assert(file_.good() || file_.eof());
         return file_.good();
     }
 
@@ -51,6 +53,12 @@ private:
     // Strip whitespaces from the buffer beginning
     void skip_whitespace();
 
+    /*
+     * @brief Doubles the buffer size, preserves the buffer contents.
+     * @return Pointer to the empty memory chunk
+     */
+    char*inc_buffer();
+
     // Handle to the processed file
     std::ifstream file_;
 
@@ -58,10 +66,13 @@ private:
     int line_number_;
 
     // Buffer to store the currently processed line
-    char buf_[1024];
+    char*buf_;
 
     // Pointer to the next token
     char*buf_ptr_;
+
+    // Current buffer size
+    int buf_size_;
 };
 
 #endif /* TOKENIZER_H */
