@@ -20,6 +20,9 @@
 #include "variable.h"
 #include "options.h"
 
+#include <iomanip>
+#include <sstream>
+
 using namespace std;
 
 Link::Link(Variable*first, Variable*second)
@@ -34,23 +37,39 @@ bool Link::compare() const {
 }
 
 ostream&operator<<(ostream&out, const Link&link) {
+    stringstream s1, s2;
     const Variable*var1 = link.first();
     const Variable*var2 = link.second();
 
-    out << *var1 << "\t= ";
+    s1 << *var1;
+    s2 << *var2;
+
+    // Align scope names
+    int len1 = s1.str().length();
+    int len2 = s2.str().length();
+
+    if(len1 > len2) {
+        s2 << setw(len1 - len2) << " ";
+    } else if(len2 > len1) {
+        s1 << setw(len2 - len1) << " ";
+    }
+
+    s1 << "\t= ";
+    s2 << "\t= ";
 
     if(!compare_states && var1->changed())
-        out << var1->prev_value_str() << " -> ";
+        s1 << var1->prev_value_str() << " -> ";
 
-    out << var1->value_str() << endl;
+    s1 << var1->value_str();
 
-
-    out << *var2 << "\t= ";
 
     if(!compare_states && var2->changed())
-        out << var2->prev_value_str() << " -> ";
+        s2 << var2->prev_value_str() << " -> ";
 
-    out<< var2->value_str() << endl;
+    s2 << var2->value_str();
+
+    out << s1.str() << endl;
+    out << s2.str() << endl;
 
     return out;
 }
