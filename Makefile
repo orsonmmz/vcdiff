@@ -4,7 +4,9 @@ BIN = vcdiff
 SRCS = main.cc comparator.cc link.cc scope.cc tokenizer.cc variable.cc vcdfile.cc
 OBJS = $(SRCS:.cc=.o)
 DEPS = $(OBJS:.o=.d)
-DESTDIR ?= /usr
+
+PREFIX ?= /usr
+BINDIR = $(DESTDIR)$(PREFIX)/bin
 
 all: $(BIN)
 
@@ -18,11 +20,11 @@ clean:
 	rm $(BIN) $(OBJS) $(DEPS) || true
 
 install:
-	mkdir -p $(DESTDIR)/bin
-	cp $(BIN) $(DESTDIR)/bin
+	mkdir -p $(BINDIR)
+	cp $(BIN) $(BINDIR)
 
 uninstall:
-	rm $(DESTDIR)/bin/$(BIN)
+	rm $(BINDIR)/$(BIN)
 
 -include $(DEPS)
 
