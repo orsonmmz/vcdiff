@@ -450,7 +450,7 @@ void VcdFile::add_variable(const char*name, const char*ident,
                         var_name = new Scalar(base_name, ident, type);
                         var_ident = var_name;
                     } else {
-                        var_name = new Alias(base_name, var_ident);
+                        var_name = var_ident;
                     }
 
                 } else if(size == 1 && has_index) {
@@ -513,7 +513,7 @@ void VcdFile::add_variable(const char*name, const char*ident,
                         var_name = new_vec;
                         var_ident = new_vec;
                     } else {
-                        var_name = new Alias(base_name, var_ident);
+                        var_name = var_ident;
                     }
 
                 } else {
@@ -564,7 +564,9 @@ void VcdFile::add_variable(const char*name, const char*ident,
                         }
                     }
 
-                    var_ident = new Scalar(base_name, ident, type);
+                    if(new_ident)
+                        var_ident = new Scalar(base_name, ident, type);
+
                     vec->add_variable(idxs.back(), var_ident);
 
                 } else {
