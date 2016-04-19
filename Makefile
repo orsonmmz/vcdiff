@@ -1,9 +1,10 @@
-CXXFLAGS=-O2 -Wall
-BIN=vcdiff
+CXXFLAGS = -O2 -Wall
+BIN = vcdiff
 
-SRCS=main.cc comparator.cc link.cc scope.cc tokenizer.cc variable.cc vcdfile.cc
-OBJS=$(SRCS:.cc=.o)
-DEPS=$(OBJS:.o=.d)
+SRCS = main.cc comparator.cc link.cc scope.cc tokenizer.cc variable.cc vcdfile.cc
+OBJS = $(SRCS:.cc=.o)
+DEPS = $(OBJS:.o=.d)
+DESTDIR ?= /usr
 
 all: $(BIN)
 
@@ -17,10 +18,11 @@ clean:
 	rm $(BIN) $(OBJS) $(DEPS) || true
 
 install:
-	cp $(BIN) /usr/local/bin
+	mkdir -p $(DESTDIR)/bin
+	cp $(BIN) $(DESTDIR)/bin
 
 uninstall:
-	rm /usr/local/bin/$(BIN)
+	rm $(DESTDIR)/bin/$(BIN)
 
 -include $(DEPS)
 
