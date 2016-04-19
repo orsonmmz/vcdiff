@@ -408,7 +408,7 @@ void VcdFile::add_variable(const char*name, const char*ident,
     Variable*var_name = cur_scope_->get_variable(base_name);
 
     // Is it a new variable or are we extending an existing vector?
-    bool new_variable = (var_name == NULL);
+    const bool new_variable = (var_name == NULL);
 
     // It is possible to have two variables with the same identifier if they
     // are exactly the same signal. For consistency, keep variables with
@@ -417,7 +417,7 @@ void VcdFile::add_variable(const char*name, const char*ident,
     Variable*var_ident = (it == var_idents_.end() ? NULL : it->second);
 
     // Is it a new identifier or the variable is an alias to an existing one?
-    bool new_ident = (var_ident == NULL);
+    const bool new_ident = (var_ident == NULL);
 
     if(!new_ident) {
         Alias*alias = new Alias(base_name, var_ident);
@@ -435,7 +435,7 @@ void VcdFile::add_variable(const char*name, const char*ident,
     // A vector to be filled with scalars
     Vector*new_vec = NULL;
 
-    if(var_name == NULL) {
+    if(new_variable) {
         switch(type) {
             case Variable::TIME:
             case Variable::INTEGER:
@@ -497,11 +497,9 @@ void VcdFile::add_variable(const char*name, const char*ident,
                                 left_idx, right_idx);
 
                         var_ident = new_vec;
-                        top_vec->add_variable(idx, new_vec);
-                    } else {
-                        top_vec->add_variable(idx, var_ident);
                     }
 
+                    top_vec->add_variable(idx, var_ident);
                     var_name = top_vec;
 
                 } else if(size > 1 && !has_index) {
@@ -575,6 +573,7 @@ void VcdFile::add_variable(const char*name, const char*ident,
                     new_vec = new Vector(base_name, ident,
                             type, left_idx, right_idx);
 
+                    assert(new_ident);
                     var_ident = new_vec;
                     vec->add_variable(idxs.front(), var_ident);
                 }
