@@ -37,7 +37,7 @@ wires are always treated (and matched) as a bus.
 
 #### What is the difference between 'state comparison' and 'transition comparison'?
 The first method compares exclusively variable states at a certain moment, the
-latter checks if the same transitions occur as well. The ransition comparison
+latter checks if the same transitions occur as well. The transition comparison
 method shows more differences and is used by default.
 
 Consider an example:
@@ -51,9 +51,10 @@ Variable (file1.vcd).var_a contains an impulse (lasting from #2 to #6), whereas
 (file2.vcd).var_b stays at 0 all the time.
 
 In the state comparison mode, variables state is checked after every transition
-and marked as changed only if the variables state is different. In the example
-above, state differs in the time unit #2 (file1.var_a = 0, file2.var_a = 1),
-but in the time unit #6 the variables are equal.
+and marked as changed only if the variables are in different state. In the
+example above, variable state differs at time unit #2 (file1.var_a = 0,
+file2.var_a = 1), but at time unit #6 the variables are equal again, so they
+are not displayed in the diff output.
 
 See the vcdiff output (-s for enabling state comparison):
 ```
