@@ -25,9 +25,11 @@ using namespace std;
 Tokenizer::Tokenizer(const string&filename)
     : file_(filename.c_str()), line_number_(0), buf_size_(1024)
 {
-    // Mark buffer as empty
     buf_ = new char[buf_size_];
     buf_ptr_ = buf_;
+
+    // Mark buffer as empty
+    *buf_ptr_ = 0;
 }
 
 Tokenizer::~Tokenizer() {
