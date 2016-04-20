@@ -151,6 +151,11 @@ void Vector::clear_transition() {
     }
 }
 
+void Vector::fill() {
+    for(int i = min_idx(); i <= max_idx(); ++i)
+        add_variable(i, new Scalar("", "", type()));
+}
+
 Scalar::Scalar(const string&name, const string&identifier, type_t type)
     : Variable(name, identifier, type), val_('?'), prev_val_('?') {
     if(type == SUPPLY0)

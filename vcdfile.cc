@@ -432,9 +432,6 @@ void VcdFile::add_variable(const char*name, const char*ident,
         var_ident = alias;
     }
 
-    // A vector to be filled with scalars
-    Vector*new_vec = NULL;
-
     if(new_variable) {
         switch(type) {
             case Variable::TIME:
@@ -468,7 +465,7 @@ void VcdFile::add_variable(const char*name, const char*ident,
                     var_name = cur_vec;
 
                     // Create vectors for all indexes in the hierarchy,
-                    // but the last one - it is going to be a scalar
+                    // but the last one - it is going to be our scalar
                     for(unsigned int i = 0; i < idxs.size() - 1; ++i) {
                         int cur_idx = *it;
                         Vector*v = new Vector("", "", type, cur_idx, cur_idx);
@@ -493,10 +490,11 @@ void VcdFile::add_variable(const char*name, const char*ident,
                     Vector*top_vec = new Vector(base_name, "", type, idx, idx);
 
                     if(new_ident) {
-                        new_vec = new Vector(base_name, ident, type,
-                                left_idx, right_idx);
+                        Vector*vec = new Vector(base_name, ident, type,
+                                                left_idx, right_idx);
+                        vec->fill();
 
-                        var_ident = new_vec;
+                        var_ident = vec;
                     }
 
                     top_vec->add_variable(idx, var_ident);
@@ -507,11 +505,12 @@ void VcdFile::add_variable(const char*name, const char*ident,
                     assert(size == std::abs(left_idx - right_idx) + 1);
 
                     if(new_ident) {
-                        new_vec = new Vector(base_name, ident, type,
-                                left_idx, right_idx);
+                        Vector*vec = new Vector(base_name, ident, type,
+                                                left_idx, right_idx);
+                        vec->fill();
 
-                        var_name = new_vec;
-                        var_ident = new_vec;
+                        var_name = vec;
+                        var_ident = vec;
                     } else {
                         var_name = var_ident;
                     }
@@ -572,8 +571,9 @@ void VcdFile::add_variable(const char*name, const char*ident,
                 } else {
                     assert(idxs.size() == 1);
 
-                    new_vec = new Vector(base_name, ident,
-                            type, left_idx, right_idx);
+                    Vector*new_vec = new Vector(base_name, ident,
+                                                type, left_idx, right_idx);
+                    new_vec->fill();
 
                     assert(new_ident);
                     var_ident = new_vec;
@@ -590,12 +590,6 @@ void VcdFile::add_variable(const char*name, const char*ident,
         DBG("%s: extended var %s\tident %s\tsize %d\tidx %d(%lu)",
                 filename_.c_str(), vec->full_name().c_str(), ident, size,
                 idxs.front(), idxs.size());
-    }
-
-    if(new_vec) {
-        // Initialize bits in the new vector
-        for(int i = new_vec->min_idx(); i <= new_vec->max_idx(); ++i)
-            new_vec->add_variable(i, new Scalar("", "", type));
     }
 
     if(new_variable) {

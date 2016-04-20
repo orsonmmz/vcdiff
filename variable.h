@@ -161,6 +161,11 @@ public:
                 (left_idx_ <= idx && idx <= right_idx_));
     }
 
+    /**
+     * Initializes vector with scalars.
+     */
+    void fill();
+
     Variable*&operator[](int idx) {
         return val_[idx];
     }
