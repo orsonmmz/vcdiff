@@ -83,7 +83,8 @@ int main(int argc, char*argv[]) {
     int opt;
 
     if(argc < 3 || !strcmp(argv[1], "--help")) {
-        cerr << "vcdiff " << VERSION << " (c) CERN 2016" << endl;
+        cerr << "vcdiff " << VERSION << " by Maciej Suminski <maciej.suminski@cern.ch>" << endl;
+        cerr << "(c) CERN 2016" << endl;
         cerr << "Usage: vcdiff [options] file1.vcd file2.vcd" << endl;
         cerr << endl;
 
