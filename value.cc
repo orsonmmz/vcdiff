@@ -18,6 +18,8 @@
 
 #include "value.h"
 
+#include <sstream>
+
 using namespace std;
 
 void Value::resize(unsigned int new_size) {
@@ -65,7 +67,29 @@ bool Value::operator==(const Value&other) const {
 
     // Should never be executed
     assert(false);
+
     return false;
+}
+
+Value::operator string() const {
+    switch(type) {
+        case BIT:
+            return string(&data.bit, 1);
+
+        case VECTOR:
+            return string(data.vec, size);
+
+        case REAL:
+        {
+            stringstream s;
+            s << data.real;
+            return s.str();
+        }
+    }
+
+    assert(false);
+
+    return string();
 }
 
 ostream&operator<<(ostream&out, const Value&var)
@@ -87,6 +111,7 @@ ostream&operator<<(ostream&out, const Value&var)
         case Value::REAL:
             out << var.data.real;
     }
+
     return out;
 }
 
