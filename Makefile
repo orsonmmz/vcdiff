@@ -1,7 +1,7 @@
 CXXFLAGS = -O2 -Wall
 BIN = vcdiff
 
-SRCS = main.cc comparator.cc link.cc scope.cc tokenizer.cc variable.cc vcdfile.cc
+SRCS = main.cc comparator.cc link.cc scope.cc tokenizer.cc value.cc variable.cc vcdfile.cc
 OBJS = $(SRCS:.cc=.o)
 DEPS = $(OBJS:.o=.d)
 

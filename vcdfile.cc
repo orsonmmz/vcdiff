@@ -263,11 +263,11 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
                 // a variable identifier
                 assert(strlen(token) > 1);
 
-                Variable::value_t value = token[0];
+                Value val = token[0];
                 string ident(&token[1]);
 
                 Variable*var = var_idents_[ident];
-                var->set_value(value);
+                var->set_value(val);
 
                 if(const Link*link = var->link())
                     changes.insert(link);

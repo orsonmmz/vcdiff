@@ -84,16 +84,17 @@ void Vector::add_variable(int idx, Variable*var) {
     var->set_index(idx);
 }
 
-void Vector::set_value(const std::string&value) {
-    assert(value.length() <= val_.size());
+void Vector::set_value(const Value&value) {
+    assert(value.size <= val_.size());
+    assert(value.type == Value::VECTOR);
 
-    int new_val_idx = value.length() - 1;
+    int new_val_idx = value.size - 1;
 
     // Copy the new value and set the remaining bits to 0
     if(left_idx_ < right_idx_) {
         for(int i = left_idx_; i <= right_idx_; ++i) {
             if(new_val_idx >= 0) {
-                val_[i]->set_value(value[new_val_idx]);
+                val_[i]->set_value(value.data.vec[new_val_idx]);
                 --new_val_idx;
             } else {
                 val_[i]->set_value('0');
@@ -103,7 +104,7 @@ void Vector::set_value(const std::string&value) {
     } else {
         for(int i = left_idx_; i >= right_idx_; --i) {
             if(new_val_idx >= 0) {
-                val_[i]->set_value(value[new_val_idx]);
+                val_[i]->set_value(value.data.vec[new_val_idx]);
                 --new_val_idx;
             } else {
                 val_[i]->set_value('0');

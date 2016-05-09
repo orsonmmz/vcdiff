@@ -19,19 +19,19 @@
 #ifndef VARIABLE_H
 #define VARIABLE_H
 
-#include <string>
 #include <map>
+#include <string>
 
-#include <cmath>
 #include <cassert>
+#include <cmath>
+
+#include "value.h"
 
 class Link;
 class Scope;
 
 class Variable {
 public:
-    typedef char value_t;
-
     enum type_t {
         EVENT, INTEGER, PARAMETER, REAL, REG, SUPPLY0, SUPPLY1, TIME,
         TRI, TRI0, TRI1, TRIAND, TRIOR, TRIREG, WAND, WIRE, WOR, UNKNOWN
@@ -89,7 +89,7 @@ public:
         return false;
     }
 
-    virtual void set_value(value_t value) = 0;
+    virtual void set_value(const Value&value) = 0;
     virtual std::string value_str() const = 0;
     virtual std::string prev_value_str() const = 0;
 
@@ -144,11 +144,7 @@ public:
         return true;
     }
 
-    void set_value(value_t value) {
-        val_[right_idx_]->set_value(value);
-    }
-
-    void set_value(const std::string&value);
+    void set_value(const Value&value);
 
     std::string value_str() const;
     std::string prev_value_str() const;
@@ -192,13 +188,10 @@ public:
         return 1;
     }
 
-    inline value_t value() const {
-        return val_;
-    }
-
-    void set_value(value_t value) {
+    void set_value(const Value&value) {
+        assert(value.type == Value::BIT);
         prev_val_ = val_;
-        val_ = toupper(value);
+        val_ = toupper(value.data.bit);
         assert(val_ == '0' || val_ == '1' || val_ == 'X' || val_ == 'Z');
     }
 
@@ -214,7 +207,7 @@ public:
     }
 
 private:
-    value_t val_, prev_val_;
+    bit_t val_, prev_val_;
 };
 
 class Alias : public Variable {
@@ -241,7 +234,7 @@ public:
         return target_->is_vector();
     }
 
-    void set_value(value_t value) {
+    void set_value(const Value&value) {
         target_->set_value(value);
     }
 
