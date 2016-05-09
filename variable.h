@@ -83,7 +83,12 @@ public:
         link_ = link;
     }
 
-    virtual unsigned int size() const = 0;
+    /**
+     * @brief Returns vector size or 1 for scalar variables.
+     */
+    virtual unsigned int size() const {
+        return 1;
+    }
 
     virtual bool is_vector() const {
         return false;
@@ -183,10 +188,6 @@ public:
             type_t type);
 
     std::string full_name() const;
-
-    unsigned int size() const {
-        return 1;
-    }
 
     void set_value(const Value&value) {
         assert(value.type == Value::BIT);
