@@ -57,15 +57,19 @@ public:
 
     void show_state() const;
 
+    int line_number() const {
+        return tokenizer_.line_number();
+    }
+
 private:
     inline void parse_error(const std::string&msg) {
         std::cerr << "Error: " << filename_ << ":"
-                  << tokenizer_.line_number() << ": " << msg << std::endl;
+                  << line_number() << ": " << msg << std::endl;
     }
 
     inline void parse_warn(const std::string&msg) {
         std::cerr << "Warning: " << filename_ << ":"
-                  << tokenizer_.line_number() << ": " << msg << std::endl;
+                  << line_number() << ": " << msg << std::endl;
     }
 
     inline void push_scope(const char*scope) {
