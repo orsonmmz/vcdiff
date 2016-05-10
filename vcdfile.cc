@@ -445,7 +445,7 @@ void VcdFile::add_variable(const char*name, const char*ident,
                 if(size == 1 && !has_index) {
                     // The simplest case: a scalar
                     if(new_ident) {
-                        var_name = new Scalar(base_name, ident, type);
+                        var_name = new Scalar(type, base_name, ident);
                         var_ident = var_name;
                     } else {
                         var_name = var_ident;
@@ -459,8 +459,8 @@ void VcdFile::add_variable(const char*name, const char*ident,
                     int prev_idx = idxs.front();
 
                     list<int>::iterator it = idxs.begin()++;
-                    Vector*cur_vec = new Vector(base_name, "", type,
-                            prev_idx, prev_idx);
+                    Vector*cur_vec = new Vector(type, prev_idx, prev_idx,
+                            base_name);
 
                     // This is the top vector, so store it in the name map
                     var_name = cur_vec;
@@ -469,7 +469,7 @@ void VcdFile::add_variable(const char*name, const char*ident,
                     // but the last one - it is going to be our scalar
                     for(unsigned int i = 0; i < idxs.size() - 1; ++i) {
                         int cur_idx = *it;
-                        Vector*v = new Vector("", "", type, cur_idx, cur_idx);
+                        Vector*v = new Vector(type, cur_idx, cur_idx);
                         cur_vec->add_variable(prev_idx, v);
 
                         cur_vec = v;
@@ -479,7 +479,7 @@ void VcdFile::add_variable(const char*name, const char*ident,
 
                     // Now add the scalar at the bottom of the hierarchy
                     if(new_ident)
-                        var_ident = new Scalar(base_name, ident, type);
+                        var_ident = new Scalar(type, base_name, ident);
 
                     cur_vec->add_variable(idxs.back(), var_ident);
 
@@ -488,11 +488,11 @@ void VcdFile::add_variable(const char*name, const char*ident,
 
                     // Single word of a multidimensional array
                     int idx = idxs.front();
-                    Vector*top_vec = new Vector(base_name, "", type, idx, idx);
+                    Vector*top_vec = new Vector(type, idx, idx, base_name);
 
                     if(new_ident) {
-                        Vector*vec = new Vector(base_name, ident, type,
-                                                left_idx, right_idx);
+                        Vector*vec = new Vector(type, left_idx, right_idx,
+                                base_name, ident);
                         vec->fill();
 
                         var_ident = vec;
@@ -506,8 +506,8 @@ void VcdFile::add_variable(const char*name, const char*ident,
                     assert(size == std::abs(left_idx - right_idx) + 1);
 
                     if(new_ident) {
-                        Vector*vec = new Vector(base_name, ident, type,
-                                                left_idx, right_idx);
+                        Vector*vec = new Vector(type, left_idx, right_idx,
+                                base_name, ident);
                         vec->fill();
 
                         var_name = vec;
@@ -564,22 +564,22 @@ void VcdFile::add_variable(const char*name, const char*ident,
                             ++it;
                         } else {
                             int new_idx = *++it;
-                            Vector*v = new Vector("", "", type, new_idx, new_idx);
+                            Vector*v = new Vector(type, new_idx, new_idx);
                             vec->add_variable(idx, v);
                             vec = v;
                         }
                     }
 
                     if(new_ident)
-                        var_ident = new Scalar(base_name, ident, type);
+                        var_ident = new Scalar(type, base_name, ident);
 
                     vec->add_variable(idxs.back(), var_ident);
 
                 } else {
                     assert(idxs.size() == 1);
 
-                    Vector*new_vec = new Vector(base_name, ident,
-                                                type, left_idx, right_idx);
+                    Vector*new_vec = new Vector( type, left_idx, right_idx,
+                            base_name, ident);
                     new_vec->fill();
 
                     assert(new_ident);

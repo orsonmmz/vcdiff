@@ -37,7 +37,8 @@ public:
         TRI, TRI0, TRI1, TRIAND, TRIOR, TRIREG, WAND, WIRE, WOR, UNKNOWN
     };
 
-    Variable(const std::string&name, const std::string&identifier, type_t type);
+    Variable(type_t type, const std::string&name = "",
+            const std::string&identifier = "");
     virtual ~Variable() {}
 
     inline void set_scope(Scope*scope) {
@@ -116,8 +117,8 @@ private:
 
 class Vector : public Variable {
 public:
-    Vector(const std::string&name, const std::string&identifier,
-            type_t type, int left_idx, int right_idx);
+    Vector(type_t type, int left_idx, int right_idx,
+            const std::string&name = "", const std::string&identifier = "");
     ~Vector();
 
     std::string full_name() const;
@@ -184,8 +185,8 @@ private:
 
 class Scalar : public Variable {
 public:
-    Scalar(const std::string&name, const std::string&identifier,
-            type_t type);
+    Scalar(type_t type, const std::string&name = "",
+            const std::string&identifier = "");
 
     std::string full_name() const;
 
@@ -213,7 +214,7 @@ private:
 
 class Parameter : public Variable {
 public:
-    Parameter(const std::string&name, const std::string&identifier);
+    Parameter(const std::string&name = "", const std::string&identifier = "");
     ~Parameter();
 
     void set_value(const Value&value) {

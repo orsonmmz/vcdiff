@@ -27,7 +27,7 @@
 
 using namespace std;
 
-Variable::Variable(const string&name, const string&identifier, type_t type)
+Variable::Variable(type_t type, const string&name, const string&identifier)
     : scope_(NULL), name_(name), ident_(identifier),
         type_(type), idx_(-1), link_(NULL) {
     assert(type_ != UNKNOWN);
@@ -37,9 +37,9 @@ Variable::Variable(const string&name, const string&identifier, type_t type)
     assert(type_ != REAL);
 }
 
-Vector::Vector(const string&name, const string&identifier,
-        type_t type, int left_idx, int right_idx)
-    : Variable(name, identifier, type),
+Vector::Vector(type_t type, int left_idx, int right_idx,
+        const string&name, const string&identifier)
+    : Variable(type, name, identifier),
         left_idx_(left_idx), right_idx_(right_idx)
 {
 }
@@ -154,11 +154,11 @@ void Vector::clear_transition() {
 
 void Vector::fill() {
     for(int i = min_idx(); i <= max_idx(); ++i)
-        add_variable(i, new Scalar("", "", type()));
+        add_variable(i, new Scalar(type()));
 }
 
-Scalar::Scalar(const string&name, const string&identifier, type_t type)
-    : Variable(name, identifier, type), val_('?'), prev_val_('?') {
+Scalar::Scalar(type_t type, const string&name, const string&identifier)
+    : Variable(type, name, identifier), val_('?'), prev_val_('?') {
     if(type == SUPPLY0)
         val_ = 0;
     else if(type == SUPPLY1)
@@ -183,7 +183,7 @@ string Scalar::prev_value_str() const {
 }
 
 Parameter::Parameter(const std::string&name, const std::string&identifier)
-    : Variable(name, identifier, PARAMETER),
+    : Variable(PARAMETER, name, identifier),
     value_(NULL), just_initialized_(false) {
 }
 
@@ -192,7 +192,7 @@ Parameter::~Parameter() {
 }
 
 Alias::Alias(const string&name, Variable*target)
-    : Variable(name, target->ident(), target->type()), target_(target)
+    : Variable(target->type(), name, target->ident()), target_(target)
 {
     assert(target);
 }
