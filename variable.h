@@ -211,6 +211,43 @@ private:
     bit_t val_, prev_val_;
 };
 
+class Parameter : public Variable {
+public:
+    Parameter(const std::string&name, const std::string&identifier);
+    ~Parameter();
+
+    void set_value(const Value&value) {
+        assert(!value_);
+        value_ = new Value(value);
+        just_initialized_ = true;
+    }
+
+    std::string value_str() const {
+        assert(value_);
+        return *value_;
+    }
+
+    std::string prev_value_str() const {
+        assert(value_);
+
+        // Parameters are immutable
+        return *value_;
+    }
+
+    bool changed() const {
+        // Parameters are immutable, they change only during initialization
+        return just_initialized_;
+    }
+
+    void clear_transition() {
+        just_initialized_ = true;
+    }
+
+private:
+    Value*value_;
+    bool just_initialized_;
+};
+
 class Alias : public Variable {
 public:
     Alias(const std::string&name, Variable*target);

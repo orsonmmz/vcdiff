@@ -182,6 +182,15 @@ string Scalar::prev_value_str() const {
     return string(1, prev_val_);
 }
 
+Parameter::Parameter(const std::string&name, const std::string&identifier)
+    : Variable(name, identifier, PARAMETER),
+    value_(NULL), just_initialized_(false) {
+}
+
+Parameter::~Parameter() {
+    delete value_;
+}
+
 Alias::Alias(const string&name, Variable*target)
     : Variable(name, target->ident(), target->type()), target_(target)
 {

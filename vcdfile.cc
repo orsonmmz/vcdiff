@@ -358,7 +358,7 @@ Variable::type_t VcdFile::parse_var_type(const char*token) const {
 
 void VcdFile::add_variable(const char*name, const char*ident,
                     int size, Variable::type_t type) {
-    assert(size > 0 || type == Variable::REAL);
+    assert(size > 0 || type == Variable::REAL || type == Variable::PARAMETER);
 
     string base_name;
     // Size == 0 for real type variables
@@ -438,8 +438,9 @@ void VcdFile::add_variable(const char*name, const char*ident,
             case Variable::INTEGER:
             case Variable::REG:
             case Variable::WIRE:
-            case Variable::PARAMETER:
                 assert(size > 0);
+
+            case Variable::PARAMETER:
 
                 if(size == 1 && !has_index) {
                     // The simplest case: a scalar
@@ -515,6 +516,12 @@ void VcdFile::add_variable(const char*name, const char*ident,
                         var_name = var_ident;
                     }
 
+                } else if(size == 0 && type == Variable::PARAMETER) {
+                    // Size == 0 indicates a parameter
+                    // (at least in the Modelsim land)
+                    var_ident = new Parameter(base_name, ident);
+                    var_name = var_ident;
+                    size = 1;
                 } else {
                     assert(false);
                 }
