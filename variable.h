@@ -196,7 +196,7 @@ public:
     std::string full_name() const;
 
     unsigned int size() const {
-        assert(std::abs(left_idx_ - right_idx_) + 1 == val_.size());
+        assert((unsigned)(std::abs(left_idx_ - right_idx_)) + 1 == val_.size());
         return std::abs(left_idx_ - right_idx_) + 1;
     }
 

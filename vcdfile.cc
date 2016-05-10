@@ -116,7 +116,7 @@ bool VcdFile::parse_header() {
             // Name: concatenate strings, until $end token arrives
             tokenizer_.get(token);
             while(strcmp(token, "$end") && tokenizer_.valid()) {
-                strncat(name, token, sizeof(name) - strlen(name));
+                strncat(name, token, sizeof(name) - strlen(name) - 1);
                 tokenizer_.get(token);
             }
 
