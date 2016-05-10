@@ -32,6 +32,7 @@ class Scope;
 
 class Variable {
 public:
+    ///> Possible variable types in VCD files
     enum type_t {
         EVENT, INTEGER, PARAMETER, REAL, REG, SUPPLY0, SUPPLY1, TIME,
         TRI, TRI0, TRI1, TRIAND, TRIOR, TRIREG, WAND, WIRE, WOR, UNKNOWN
@@ -41,44 +42,82 @@ public:
             const std::string&identifier = "");
     virtual ~Variable() {}
 
+    /**
+     * @brief Assigns a scope to variable. It can be done only once for a
+     * variable.
+     */
     inline void set_scope(Scope*scope) {
         assert(scope_ == NULL || scope_ == scope);
         scope_ = scope;
     }
 
+    /**
+     * @brief Returns currently assigned scope or NULL if there is none.
+     */
     inline Scope*scope() const {
         return scope_;
     }
 
+    /**
+     * @brief Returns short name of the variable (e.g. for 'scope.module.var'
+     * returns 'var').
+     */
     inline const std::string&name() const {
         return name_;
     }
 
+    /**
+     * @brief If there is a scope assigned, it returns a full name including
+     * scope. Otherwise it returns the variable name.
+     */
     virtual std::string full_name() const {
         return name_;
     }
 
+    /**
+     * @brief Returns identifier associated with the variable.
+     */
     inline const std::string&ident() const {
         return ident_;
     }
 
+    /**
+     * @brief Returns type of the variable.
+     */
     inline type_t type() const {
         return type_;
     }
 
+    /**
+     * @brief Sets an index for the variable, in case the variable is a part
+     * of a vector. It can be done only once for a variable.
+     */
     inline void set_index(int index) {
         assert(index >= 0 || index == idx_);
         idx_ = index;
     }
 
+    /**
+     * @brief Returns the variable index, if it is a part of a vector,
+     * or -1 if it is not the case.
+     */
     inline int index() const {
         return idx_;
     }
 
+    /**
+     * @brief Returns an associated Link object, representing connection with
+     * a variable from other .vcd file.
+     * @see Link
+     */
     virtual const Link*link() const {
         return link_;
     }
 
+    /**
+     * @brief Assigns a Link object, representing connection with a variable
+     * from other .vcd file. It can be done only once for a variable.
+     */
     inline void set_link(const Link*link) {
         assert(link_ == NULL);
         link_ = link;
@@ -91,15 +130,37 @@ public:
         return 1;
     }
 
+    /**
+     * @brief Returns true if the variable is a vector, false otherwise.
+     */
     virtual bool is_vector() const {
         return false;
     }
 
+    /**
+     * @brief Sets a new value for the variable.
+     */
     virtual void set_value(const Value&value) = 0;
+
+    /**
+     * @brief Returns current value of the variable, represented as a string.
+     */
     virtual std::string value_str() const = 0;
+
+    /**
+     * @brief Returns previous value of the variable, represented as a string.
+     */
     virtual std::string prev_value_str() const = 0;
 
+    /**
+     * @brief Returns true if variable has changed in the current time step.
+     */
     virtual bool changed() const = 0;
+
+    /**
+     * @brief Clears modification flag for the variable. It should be called
+     * at the end of each time step.
+     */
     virtual void clear_transition() = 0;
 
     inline bool operator==(const Variable&other) const {
@@ -107,11 +168,22 @@ public:
     }
 
 private:
+    ///> Parent scope
     Scope*scope_;
+
+    ///> Variable name
     const std::string name_;
+
+    ///> Variable identifier
     const std::string ident_;
+
+    ///> Variable type
     type_t type_;
+
+    ///> Variable index, if the variable is a part of a vector
     int idx_;
+
+    ///> Associated Link object pointing to twin variable in another VCD file
     const Link*link_;
 };
 

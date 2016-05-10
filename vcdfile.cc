@@ -25,6 +25,7 @@
 
 using namespace std;
 
+// Converts a string to lower case in-place
 static void to_lower_case(char*str) {
     while(*str) {
         *str = tolower(*str);
