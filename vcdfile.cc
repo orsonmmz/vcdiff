@@ -120,6 +120,12 @@ bool VcdFile::parse_header() {
                 tokenizer_.get(token);
             }
 
+            if(strlen(name) == sizeof(name))
+                parse_warn("too long variable name, could have been clamped");
+
+            if(strlen(ident) == sizeof(ident))
+                parse_warn("too long identifier name, could have been clamped");
+
             if(!ignore_case)
                 to_lower_case(name);
 
