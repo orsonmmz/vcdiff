@@ -27,6 +27,7 @@
 #include "comparator.h"
 #include "vcdfile.h"
 
+#include <cstdlib>
 #include <cstring>
 #include <unistd.h>
 
@@ -74,9 +75,16 @@ option warn_options[] = {
 };
 
 bool compare_states = false;
+bool test_mode = false;
 
 //bool show_unmatched_vars = false;    // TODO
 //bool match_individual_scalars = false; // TODO
+
+static void disable_all_warnings() {
+    for(option*opt_ptr = warn_options; opt_ptr->name; ++opt_ptr) {
+        *opt_ptr->bool_switch = false;
+    }
+}
 
 int main(int argc, char*argv[]) {
     option*opt_ptr = NULL;
@@ -127,17 +135,19 @@ int main(int argc, char*argv[]) {
                 }
 
                 // Disable all warnings
-                if(!strcmp(optarg, "all")) {
-                    for(opt_ptr = warn_options; opt_ptr->name; ++opt_ptr) {
-                        *opt_ptr->bool_switch = false;
-                    }
-                }
+                if(!strcmp(optarg, "all"))
+                    disable_all_warnings();
                 break;
 
             case 's':
                 compare_states = true;
                 break;
         }
+    }
+
+    if(getenv("TEST_VCDIFF")) {
+        disable_all_warnings();
+        test_mode = true;
     }
 
     VcdFile file1(argv[argc-2]);

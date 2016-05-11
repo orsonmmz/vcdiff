@@ -78,6 +78,11 @@ public:
 
     void resize(unsigned int new_size);
 
+    /**
+     * @brief Computes comparison checksum, used for tests only.
+     */
+    unsigned int checksum() const;
+
     Value&operator=(const Value&other);
     bool operator==(const Value&other) const;
     operator std::string() const;

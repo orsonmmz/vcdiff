@@ -1,0 +1,13 @@
+#!/bin/sh
+cd $@
+
+rm result > /dev/null 2>&1
+TEST_VCDIFF=1 /bin/sh -c 'time ../../vcdiff *.vcd > result'
+diff result gold > /dev/null
+if [ $? == 0 ]; then
+    echo PASSED
+else
+    echo FAILED
+fi
+
+cd ..

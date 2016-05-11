@@ -31,5 +31,7 @@ extern bool warn_unexpected_tokens;
 
 extern bool compare_states;
 
+extern bool test_mode;
+
 #endif /* OPTIONS_H */
 

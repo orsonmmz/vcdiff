@@ -222,26 +222,41 @@ void Comparator::check_value_changes() {
         file2_.show_state();
 #endif
 
-        bool emitted_diff_header = false;
+        if(test_mode) {
+            unsigned long long checksum = 0;
 
-        for(set<const Link*>::iterator it = changes.begin();
-                it != changes.end(); ++it) {
-            const Link*link = *it;
-
-            if(!link->compare()) {
-                if(!emitted_diff_header) {
-                    cout << "diff #" << current_time << endl;
-                    cout << "==================" << endl;
-                    emitted_diff_header = true;
-                }
-
-                cout << *link << endl;
-            }
-
-            // Clear the transition
-            if(!compare_states) {
+            for(set<const Link*>::iterator it = changes.begin();
+                    it != changes.end(); ++it) {
+                const Link*link = *it;
+                checksum += link->checksum();
                 link->first()->clear_transition();
                 link->second()->clear_transition();
+            }
+
+            cout << current_time << ":" << checksum << endl;
+
+        } else {
+            bool emitted_diff_header = false;
+
+            for(set<const Link*>::iterator it = changes.begin();
+                    it != changes.end(); ++it) {
+                const Link*link = *it;
+
+                if(!link->compare()) {
+                    if(!emitted_diff_header) {
+                        cout << "diff #" << current_time << endl;
+                        cout << "==================" << endl;
+                        emitted_diff_header = true;
+                    }
+
+                    cout << *link << endl;
+                }
+
+                // Clear the transition
+                if(!compare_states) {
+                    link->first()->clear_transition();
+                    link->second()->clear_transition();
+                }
             }
         }
     }

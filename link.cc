@@ -36,6 +36,13 @@ bool Link::compare() const {
         && (compare_states || first_->prev_value_str() == second_->prev_value_str()));
 }
 
+unsigned long long Link::checksum() const {
+    unsigned int first = first_->checksum();
+    unsigned int second = second_->checksum();
+
+    return ((unsigned long long)(first) << sizeof(unsigned int) * 8) | second;
+}
+
 ostream&operator<<(ostream&out, const Link&link) {
     stringstream s1, s2;
     const Variable*var1 = link.first();

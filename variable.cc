@@ -37,6 +37,23 @@ Variable::Variable(type_t type, const string&name, const string&identifier)
     assert(type_ != REAL);
 }
 
+unsigned int Variable::checksum() const {
+    unsigned int res = 0;
+    std::string val = value_str();
+    std::string prev_val = prev_value_str();
+
+    for(unsigned int i = 0; i < val.size(); ++i)
+        res += val[i];
+
+    for(unsigned int i = 0; i < prev_val.size(); ++i)
+        res += prev_val[i];
+
+    for(unsigned int i = 0; i < name_.size(); ++i)
+        res += name_[i];
+
+    return res;
+}
+
 Vector::Vector(type_t type, int left_idx, int right_idx,
         const string&name, const string&identifier)
     : Variable(type, name, identifier),

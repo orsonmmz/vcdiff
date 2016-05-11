@@ -40,6 +40,11 @@ public:
      */
     bool compare() const;
 
+    /*
+     * Computes comparison checksum, used for tests only.
+     */
+    unsigned long long checksum() const;
+
 private:
     Variable*first_;
     Variable*second_;

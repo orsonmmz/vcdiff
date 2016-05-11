@@ -34,6 +34,38 @@ void Value::resize(unsigned int new_size) {
     data.vec = new_val;
 }
 
+unsigned int Value::checksum() const {
+    unsigned int res = 0;
+
+    switch(type) {
+        case BIT:
+            res = data.bit;
+            break;
+
+        case VECTOR:
+            for(unsigned int i = 0; i < size; ++i) {
+                res += data.vec[i];
+            }
+            break;
+
+        case REAL:
+        {
+            union float_int {
+                float f;
+                unsigned int i;
+            } *u = (float_int*)&data.real;
+            res = u->i;
+            break;
+        }
+
+        default:
+            assert(false);
+            break;
+    }
+
+    return res;
+}
+
 Value&Value::operator=(const Value&other) {
     assert(type == other.type);
     assert(size == other.size);

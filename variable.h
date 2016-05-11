@@ -167,6 +167,11 @@ public:
         return (value_str() == other.value_str());
     }
 
+    /**
+     * @brief Computes comparison checksum, used for tests only.
+     */
+    unsigned int checksum() const;
+
 private:
     ///> Parent scope
     Scope*scope_;
