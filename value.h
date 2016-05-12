@@ -31,6 +31,8 @@ typedef std::vector<bit_t> vec_t;
 
 class Value {
 public:
+    enum data_type_t { BIT, VECTOR, REAL } type;
+
     Value(bit_t val)
       : type(BIT), size(1) {
           data.bit = toupper(val);
@@ -51,6 +53,8 @@ public:
           data.vec = new bit_t[size];
           memcpy(data.vec, &val[0], size * sizeof(bit_t));
     }
+
+    Value(data_type_t data_type);
 
     Value(const std::string&val)
       : type(VECTOR), size(val.size()) {
@@ -87,8 +91,6 @@ public:
     bool operator==(const Value&other) const;
     bool operator!=(const Value&other) const;
     operator std::string() const;
-
-    enum type_t { BIT, VECTOR, REAL } type;
 
     union data_t {
         bit_t bit;

@@ -22,6 +22,28 @@
 
 using namespace std;
 
+Value::Value(data_type_t data_type)
+    : type(data_type), size(1) {
+    switch(data_type) {
+        case BIT:
+            data.bit = UNINITIALIZED;
+            break;
+
+        case VECTOR:
+            data.vec = new bit_t[1];
+            *data.vec = UNINITIALIZED;
+            break;
+
+        case REAL:
+            data.real = 0.0f;
+            break;
+
+        default:
+            assert(false);
+            break;
+    }
+}
+
 void Value::resize(unsigned int new_size) {
     assert(type == VECTOR);
     assert(new_size >= size);
