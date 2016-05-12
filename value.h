@@ -85,6 +85,7 @@ public:
 
     Value&operator=(const Value&other);
     bool operator==(const Value&other) const;
+    bool operator!=(const Value&other) const;
     operator std::string() const;
 
     enum type_t { BIT, VECTOR, REAL } type;

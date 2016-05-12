@@ -75,10 +75,13 @@ unsigned int Value::checksum() const {
 
 Value&Value::operator=(const Value&other) {
     assert(type == other.type);
-    assert(size == other.size);
+    assert(size >= other.size);
 
     if(type == VECTOR) {
-        memcpy(data.vec, other.data.vec, size * sizeof(bit_t));
+        int size_diff = size - other.size;
+        // Zero the unspecified part, save right-justified new value
+        memset(data.vec, '0', size_diff);
+        memcpy(data.vec + size_diff, other.data.vec, other.size * sizeof(bit_t));
     } else {
         data = other.data;
     }
@@ -102,12 +105,17 @@ bool Value::operator==(const Value&other) const {
 
         case REAL:
             return data.real == other.data.real;
+
+        default:
+            assert(false);
+            break;
     }
 
-    // Should never be executed
-    assert(false);
-
     return false;
+}
+
+bool Value::operator!=(const Value&other) const {
+    return !(*this == other);
 }
 
 Value::operator string() const {
@@ -124,9 +132,11 @@ Value::operator string() const {
             s << data.real;
             return s.str();
         }
-    }
 
-    assert(false);
+        default:
+            assert(false);
+            break;
+    }
 
     return string();
 }
@@ -136,6 +146,7 @@ ostream&operator<<(ostream&out, const Value&var)
     switch(var.type) {
         case Value::BIT:
             out << var.data.bit;
+            break;
 
         case Value::VECTOR:
         {
@@ -145,10 +156,16 @@ ostream&operator<<(ostream&out, const Value&var)
                 out << *p;
                 ++p;
             }
+            break;
         }
 
         case Value::REAL:
             out << var.data.real;
+            break;
+
+        default:
+            assert(false);
+            break;
     }
 
     return out;
