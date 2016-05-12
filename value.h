@@ -25,9 +25,8 @@
 #include <cassert>
 #include <cstring>
 
-/// Basic bit & bit vector types
+/// Basic bit type (possible values 0, 1, X, Z)
 typedef char bit_t;
-typedef std::vector<bit_t> vec_t;
 
 class Value {
 public:
