@@ -24,14 +24,21 @@ using namespace std;
 
 void Value::resize(unsigned int new_size) {
     assert(type == VECTOR);
-    assert(new_size > size);
+    assert(new_size >= size);
 
+    if(new_size == size)
+        return;
+
+    int size_diff = new_size - size;
+
+    // Copy the old data and fill the new part with '?'
     bit_t*new_val = new bit_t[new_size];
-    memcpy(new_val, data.vec, size * sizeof(bit_t));
-    memset(&new_val[size], 'X', new_size - size);
+    memcpy(new_val + size_diff, data.vec, size * sizeof(bit_t));
+    memset(new_val, UNINITIALIZED, size_diff);
 
     delete[] data.vec;
     data.vec = new_val;
+    size = new_size;
 }
 
 unsigned int Value::checksum() const {

@@ -97,6 +97,7 @@ public:
 
     unsigned int size;
 
+    static const bit_t UNINITIALIZED = '?';
 };
 
 std::ostream&operator<<(std::ostream&out, const Value&var);
