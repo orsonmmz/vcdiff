@@ -165,30 +165,7 @@ Value::operator string() const {
 
 ostream&operator<<(ostream&out, const Value&var)
 {
-    switch(var.type) {
-        case Value::BIT:
-            out << var.data.bit;
-            break;
-
-        case Value::VECTOR:
-        {
-            const bit_t*p = var.data.vec;
-
-            for(unsigned int i = 0; i < var.size; ++i) {
-                out << *p;
-                ++p;
-            }
-            break;
-        }
-
-        case Value::REAL:
-            out << var.data.real;
-            break;
-
-        default:
-            assert(false);
-            break;
-    }
+    out << (string) var;
 
     return out;
 }
