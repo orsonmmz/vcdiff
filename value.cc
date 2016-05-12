@@ -38,6 +38,9 @@ Value::Value(data_type_t data_type)
             data.real = 0.0f;
             break;
 
+        case UNDEFINED:
+            break;
+
         default:
             assert(false);
             break;
@@ -96,8 +99,16 @@ unsigned int Value::checksum() const {
 }
 
 Value&Value::operator=(const Value&other) {
-    assert(type == other.type);
-    assert(size >= other.size);
+    assert(type == other.type || type == UNDEFINED);
+    assert(size >= other.size || type == UNDEFINED);
+
+    if(type == UNDEFINED) {
+        type = other.type;
+        size = other.size;
+
+        if(type == VECTOR)
+            data.vec = new bit_t[size];
+    }
 
     if(type == VECTOR) {
         int size_diff = size - other.size;
@@ -154,6 +165,12 @@ Value::operator string() const {
             s << data.real;
             return s.str();
         }
+
+        case UNDEFINED:
+            // UNDEFINED should be a temporary state, do not expect any
+            // variable to print itself out when undefined
+            assert(false);
+            return string("<undefined>");
 
         default:
             assert(false);

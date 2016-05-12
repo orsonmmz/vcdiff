@@ -30,7 +30,11 @@ typedef char bit_t;
 
 class Value {
 public:
-    enum data_type_t { BIT, VECTOR, REAL } type;
+    enum data_type_t { BIT, VECTOR, REAL, UNDEFINED };
+
+    Value()
+      : type(UNDEFINED), size(1) {
+    }
 
     Value(bit_t val)
       : type(BIT), size(1) {
@@ -90,6 +94,8 @@ public:
     bool operator==(const Value&other) const;
     bool operator!=(const Value&other) const;
     operator std::string() const;
+
+    data_type_t type;
 
     union data_t {
         bit_t bit;
