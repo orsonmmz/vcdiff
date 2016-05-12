@@ -73,7 +73,7 @@ public:
 
     ~Value() {
         if(type == VECTOR)
-            delete data.vec;
+            delete[] data.vec;
     }
 
     void resize(unsigned int new_size);

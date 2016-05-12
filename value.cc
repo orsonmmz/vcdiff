@@ -30,7 +30,7 @@ void Value::resize(unsigned int new_size) {
     memcpy(new_val, data.vec, size * sizeof(bit_t));
     memset(&new_val[size], 'X', new_size - size);
 
-    delete data.vec;
+    delete[] data.vec;
     data.vec = new_val;
 }
 
