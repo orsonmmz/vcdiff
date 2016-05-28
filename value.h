@@ -23,7 +23,6 @@
 #include <vector>
 
 #include <cassert>
-#include <cstring>
 
 /// Basic bit type (possible values 0, 1, X, Z)
 typedef char bit_t;
@@ -33,54 +32,30 @@ public:
     enum data_type_t { BIT, VECTOR, REAL, UNDEFINED };
 
     Value()
-      : type(UNDEFINED), size(1) {
+      : type(UNDEFINED), size(0) {
     }
 
     Value(bit_t val)
       : type(BIT), size(1) {
-          data.bit = toupper(val);
-          assert(data.bit == '0' || data.bit == '1'
-                  || data.bit == 'X' || data.bit == 'Z');
+        data.bit = toupper(val);
+        assert(data.bit == '0' || data.bit == '1'
+                || data.bit == 'X' || data.bit == 'Z'
+                || data.bit == UNINITIALIZED);
     }
 
     Value(float val)
       : type(REAL), size(1) {
-          data.real = val;
+        data.real = val;
     }
 
-    Value(const std::vector<bit_t>&val)
-      : type(VECTOR), size(val.size()) {
-          assert(size > 0);
-
-          // TODO check if it contains valid values
-          data.vec = new bit_t[size];
-          memcpy(data.vec, &val[0], size * sizeof(bit_t));
-    }
-
+    Value(const std::vector<bit_t>&val);
     Value(data_type_t data_type);
-
-    Value(const std::string&val)
-      : type(VECTOR), size(val.size()) {
-          assert(size > 0);
-
-          // TODO check if it contains valid values?
-          data.vec = new bit_t[size];
-          memcpy(data.vec, &val[0], size * sizeof(bit_t));
-    }
-
-    Value(const Value&other)
-      : type(other.type), size(other.size) {
-        if(type == VECTOR) {
-            data.vec = new bit_t[size];
-            memcpy(data.vec, other.data.vec, size * sizeof(bit_t));
-        } else {
-            data = other.data;
-        }
-    }
+    Value(const std::string&val);
+    Value(const Value&other);
 
     ~Value() {
         if(type == VECTOR)
-            delete[] data.vec;
+            delete [] data.vec;
     }
 
     void resize(unsigned int new_size);
@@ -88,7 +63,7 @@ public:
     /**
      * @brief Computes comparison checksum, used for tests only.
      */
-    unsigned int checksum() const;
+    unsigned long long checksum() const;
 
     Value&operator=(const Value&other);
     bool operator==(const Value&other) const;
@@ -105,7 +80,7 @@ public:
 
     unsigned int size;
 
-    static const bit_t UNINITIALIZED = '?';
+    static const bit_t UNINITIALIZED;
 };
 
 std::ostream&operator<<(std::ostream&out, const Value&var);

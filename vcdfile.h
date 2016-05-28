@@ -89,10 +89,10 @@ private:
         return tokenizer_.valid();
     }
 
-    Variable::type_t parse_var_type(const char*token) const;
+    Variable::var_type_t parse_var_type(const char*token) const;
 
     void add_variable(const char*name, const char*ident,
-                      int size, Variable::type_t type);
+                      int size, Variable::var_type_t type);
 
     // TODO comments
     const std::string filename_;

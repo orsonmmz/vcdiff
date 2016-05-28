@@ -33,13 +33,13 @@ class Scope;
 class Variable {
 public:
     ///> Possible variable types in VCD files
-    enum type_t {
+    enum var_type_t {
         EVENT, INTEGER, PARAMETER, REAL, REG, SUPPLY0, SUPPLY1, TIME,
         TRI, TRI0, TRI1, TRIAND, TRIOR, TRIREG, WAND, WIRE, WOR, UNKNOWN
     };
 
-    Variable(type_t type, const std::string&name = "",
-            const std::string&identifier = "");
+    Variable(var_type_t var_type, Value::data_type_t data_type,
+            const std::string&name = "", const std::string&identifier = "");
     virtual ~Variable() {}
 
     /**
@@ -84,8 +84,15 @@ public:
     /**
      * @brief Returns type of the variable.
      */
-    inline type_t type() const {
+    inline var_type_t type() const {
         return type_;
+    }
+
+    /**
+     * @brief Returns the stored data type.
+     */
+    inline Value::data_type_t data_type() const {
+        return data_type_;
     }
 
     /**
@@ -94,6 +101,7 @@ public:
      */
     inline void set_index(int index) {
         assert(index >= 0 || index == idx_);
+
         idx_ = index;
     }
 
@@ -143,16 +151,6 @@ public:
     virtual void set_value(const Value&value) = 0;
 
     /**
-     * @brief Returns current value of the variable, represented as a string.
-     */
-    virtual std::string value_str() const = 0;
-
-    /**
-     * @brief Returns previous value of the variable, represented as a string.
-     */
-    virtual std::string prev_value_str() const = 0;
-
-    /**
      * @brief Returns true if variable has changed in the current time step.
      */
     virtual bool changed() const = 0;
@@ -163,14 +161,25 @@ public:
      */
     virtual void clear_transition() = 0;
 
-    inline bool operator==(const Variable&other) const {
-        return (value_str() == other.value_str());
-    }
+    /**
+     * @brief Computes the current value checksum, for comparisons.
+     */
+    virtual unsigned long long checksum() const = 0;
 
     /**
-     * @brief Computes comparison checksum, used for tests only.
+     * @brief Computes the previous value checksum, for comparisons.
      */
-    unsigned int checksum() const;
+    virtual unsigned long long prev_checksum() const = 0;
+
+    /**
+     * @brief Returns the current variable value as a string.
+     */
+    virtual std::string value_str() const = 0;
+
+    /**
+     * @brief Returns the previous variable value as a string.
+     */
+    virtual std::string prev_value_str() const = 0;
 
 private:
     ///> Parent scope
@@ -183,7 +192,10 @@ private:
     const std::string ident_;
 
     ///> Variable type
-    type_t type_;
+    var_type_t type_;
+
+    ///> Stored data type
+    Value::data_type_t data_type_;
 
     ///> Variable index, if the variable is a part of a vector
     int idx_;
@@ -194,16 +206,12 @@ private:
 
 class Vector : public Variable {
 public:
-    Vector(type_t type, int left_idx, int right_idx,
+    Vector(var_type_t type, int left_idx, int right_idx,
             const std::string&name = "", const std::string&identifier = "");
+
     ~Vector();
 
     std::string full_name() const;
-
-    unsigned int size() const {
-        assert((unsigned)(std::abs(left_idx_ - right_idx_)) + 1 == val_.size());
-        return std::abs(left_idx_ - right_idx_) + 1;
-    }
 
     inline int left_idx() const {
         return left_idx_;
@@ -223,18 +231,28 @@ public:
 
     void add_variable(int idx, Variable*var);
 
+    unsigned int size() const {
+        assert(vec_range_size() == children_.size());
+
+        return children_.size();
+    }
+
     bool is_vector() const {
         return true;
     }
 
     void set_value(const Value&value);
 
-    std::string value_str() const;
-    std::string prev_value_str() const;
-
     bool changed() const;
     void clear_transition();
 
+    unsigned long long checksum() const;
+    unsigned long long prev_checksum() const;
+
+    std::string value_str() const;
+    std::string prev_value_str() const;
+
+    ///> Checks if an index fits the vector range.
     inline bool is_valid_idx(int idx) const {
         return ((left_idx_ >= idx && idx >= right_idx_) ||
                 (left_idx_ <= idx && idx <= right_idx_));
@@ -245,85 +263,98 @@ public:
      */
     void fill();
 
-    Variable*&operator[](int idx) {
-        return val_[idx];
+    Variable*operator[](int idx) {
+        assert(is_valid_idx(idx));
+        assert(children_.count(idx));
+
+        return children_[idx];
     }
 
     const Variable*operator[](int idx) const {
-        return val_.at(idx);
+        assert(is_valid_idx(idx));
+        assert(children_.count(idx));
+
+        return children_.at(idx);
     }
 
     std::ostream&operator<<(std::ostream&out) const;
 
 private:
-    int left_idx_, right_idx_;
-    std::map<int, Variable*> val_;
+    /**
+     * @brief Returns size of the declared vector range.
+     */
+    inline unsigned int vec_range_size() const {
+        return std::abs(left_idx_ - right_idx_) + 1;
+    }
+
+    /**
+     * @brief Converts a vector index to value index
+     * (i.e. which array element corresponds to a specific vector index).
+     */
+    inline unsigned int vec_to_val_idx(int idx) const {
+        return range_asc() ? idx - left_idx_ : right_idx_ - idx;
+    }
+
+    ///> Is the vector range ascending?
+    inline bool range_asc() const {
+        return left_idx_ < right_idx_;
+    }
+
+    ///> Is the vector range descending?
+    inline bool range_desc() const {
+        return left_idx_ > right_idx_;
+    }
+
+    ///> Vector left range (vector [left_idx:right_idx])
+    int left_idx_;
+
+    ///> Vector right range (vector [left_idx:right_idx])
+    int right_idx_;
+
+    ///> Variables that constitute the vector
+    std::map<int, Variable*> children_;
 };
 
 class Scalar : public Variable {
 public:
-    Scalar(type_t type, const std::string&name = "",
+    Scalar(var_type_t type, const std::string&name = "",
             const std::string&identifier = "");
 
     std::string full_name() const;
 
     void set_value(const Value&value) {
-        assert(value.type == Value::BIT);
-        prev_val_ = val_;
-        val_ = toupper(value.data.bit);
-        assert(val_ == '0' || val_ == '1' || val_ == 'X' || val_ == 'Z');
+        prev_value_ = value_;
+        value_ = value;
     }
 
-    std::string value_str() const;
-    std::string prev_value_str() const;
-
     bool changed() const {
-        return prev_val_ != val_;
+        // We cannot have a bool flag to notify about changes. If scalar is a
+        // part of a vector, then it might have the same value assigned.
+        return value_ != prev_value_;
     }
 
     void clear_transition() {
-        prev_val_ = val_;
+        prev_value_ = value_;
     }
 
-private:
-    bit_t val_, prev_val_;
-};
+    unsigned long long checksum() const {
+        return value_.checksum();
+    }
 
-class Parameter : public Variable {
-public:
-    Parameter(const std::string&name = "", const std::string&identifier = "");
-    ~Parameter();
-
-    void set_value(const Value&value) {
-        assert(!value_);
-        value_ = new Value(value);
-        just_initialized_ = true;
+    unsigned long long prev_checksum() const {
+        return prev_value_.checksum();
     }
 
     std::string value_str() const {
-        assert(value_);
-        return *value_;
+        return std::string(value_);
     }
 
     std::string prev_value_str() const {
-        assert(value_);
-
-        // Parameters are immutable
-        return *value_;
-    }
-
-    bool changed() const {
-        // Parameters are immutable, they change only during initialization
-        return just_initialized_;
-    }
-
-    void clear_transition() {
-        just_initialized_ = true;
+        return std::string(prev_value_);
     }
 
 private:
-    Value*value_;
-    bool just_initialized_;
+    Value value_, prev_value_;
 };
 
 class Alias : public Variable {
@@ -354,20 +385,28 @@ public:
         target_->set_value(value);
     }
 
-    std::string value_str() const {
-        return target_->value_str();
-    }
-
-    std::string prev_value_str() const {
-        return target_->prev_value_str();
-    }
-
     bool changed() const {
         return target_->changed();
     }
 
     void clear_transition() {
         target_->clear_transition();
+    }
+
+    unsigned long long checksum() const {
+        return target_->checksum();
+    }
+
+    unsigned long long prev_checksum() const {
+        return target_->checksum();
+    }
+
+    std::string value_str() const {
+        return target_->value_str();
+    }
+
+    std::string prev_value_str() const {
+        return target_->prev_value_str();
     }
 
 private:

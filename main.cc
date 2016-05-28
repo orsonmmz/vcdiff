@@ -49,7 +49,7 @@ option ignore_options[] = {
     { "case",   &ignore_case,
         "Case-insensitive name mapping (e.g. variable to VaRiAbLe)." },
     { "type",   &ignore_var_type,
-        "Enable mapping different types (e.g. integer to reg[31:0])." },
+        "Enable mapping different, but compatible types (e.g. integer to reg[31:0])." },
     { "index",  &ignore_var_index,
         "Enable mapping different index ranges (e.g. reg[3:0] to reg[4:1])." },
     { NULL, NULL }

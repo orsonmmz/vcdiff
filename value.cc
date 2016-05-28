@@ -20,7 +20,15 @@
 
 #include <sstream>
 
+#include <cstring>
+
 using namespace std;
+
+Value::Value(const std::vector<bit_t>&val)
+    : type(VECTOR), size(val.size()) {
+    data.vec = new bit_t[size];
+    memcpy(data.vec, &val[0], size * sizeof(bit_t));
+}
 
 Value::Value(data_type_t data_type)
     : type(data_type), size(1) {
@@ -31,7 +39,7 @@ Value::Value(data_type_t data_type)
 
         case VECTOR:
             data.vec = new bit_t[1];
-            *data.vec = UNINITIALIZED;
+            data.vec[0] = UNINITIALIZED;
             break;
 
         case REAL:
@@ -39,11 +47,28 @@ Value::Value(data_type_t data_type)
             break;
 
         case UNDEFINED:
+            memset(&data, 0, sizeof(data));
             break;
 
         default:
             assert(false);
             break;
+    }
+}
+
+Value::Value(const string&val)
+    : type(VECTOR), size(val.size()) {
+    data.vec = new bit_t[size];
+    memcpy(data.vec, val.c_str(), size * sizeof(bit_t));
+}
+
+Value::Value(const Value&other)
+    : type(other.type), size(other.size) {
+    if(type == VECTOR) {
+        data.vec = new bit_t[size];
+        memcpy(data.vec, other.data.vec, size * sizeof(bit_t));
+    } else {
+        data = other.data;
     }
 }
 
@@ -54,30 +79,29 @@ void Value::resize(unsigned int new_size) {
     if(new_size == size)
         return;
 
-    int size_diff = new_size - size;
+    unsigned int size_diff = new_size - size;
+    bit_t*new_vec = new bit_t[new_size];
+    memset(new_vec, '0', size_diff);
+    memcpy(new_vec + size_diff, data.vec, size * sizeof(bit_t));
 
-    // Copy the old data and fill the new part with '?'
-    bit_t*new_val = new bit_t[new_size];
-    memcpy(new_val + size_diff, data.vec, size * sizeof(bit_t));
-    memset(new_val, UNINITIALIZED, size_diff);
-
-    delete[] data.vec;
-    data.vec = new_val;
+    delete [] data.vec;
+    data.vec = new_vec;
     size = new_size;
 }
 
-unsigned int Value::checksum() const {
-    unsigned int res = 0;
+unsigned long long Value::checksum() const {
+    unsigned long long res = type;
+    const int checksum_bit_size = sizeof(unsigned long long) * 8;
+    res <<= checksum_bit_size / 2;
 
     switch(type) {
         case BIT:
-            res = data.bit;
+            res += data.bit;
             break;
 
         case VECTOR:
-            for(unsigned int i = 0; i < size; ++i) {
-                res += data.vec[i];
-            }
+            for(unsigned int i = 0; i < size; ++i)
+                res += data.vec[i] << (i % checksum_bit_size);
             break;
 
         case REAL:
@@ -86,7 +110,7 @@ unsigned int Value::checksum() const {
                 float f;
                 unsigned int i;
             } *u = (float_int*)&data.real;
-            res = u->i;
+            res += u->i;
             break;
         }
 
@@ -104,17 +128,13 @@ Value&Value::operator=(const Value&other) {
 
     if(type == UNDEFINED) {
         type = other.type;
-        size = other.size;
 
         if(type == VECTOR)
             data.vec = new bit_t[size];
     }
 
     if(type == VECTOR) {
-        int size_diff = size - other.size;
-        // Zero the unspecified part, save right-justified new value
-        memset(data.vec, '0', size_diff);
-        memcpy(data.vec + size_diff, other.data.vec, other.size * sizeof(bit_t));
+        memcpy(data.vec, other.data.vec, size * sizeof(bit_t));
     } else {
         data = other.data;
     }
@@ -134,7 +154,7 @@ bool Value::operator==(const Value&other) const {
             return data.bit == other.data.bit;
 
         case VECTOR:
-            return strncmp(data.vec, other.data.vec, size);
+            return !strncmp(data.vec, other.data.vec, size);
 
         case REAL:
             return data.real == other.data.real;
@@ -171,11 +191,10 @@ Value::operator string() const {
             // variable to print itself out when undefined
             assert(false);
             return string("<undefined>");
-
-        default:
-            assert(false);
-            break;
     }
+
+    // Fallback, should never happen
+    assert(false);
 
     return string();
 }
@@ -186,4 +205,6 @@ ostream&operator<<(ostream&out, const Value&var)
 
     return out;
 }
+
+const bit_t Value::UNINITIALIZED = '?';
 

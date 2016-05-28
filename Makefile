@@ -1,4 +1,4 @@
-CXXFLAGS = -O2 -Wall
+CXXFLAGS = -O2 -Wall -std=c++11
 BIN = vcdiff
 
 SRCS = main.cc comparator.cc link.cc scope.cc tokenizer.cc value.cc variable.cc vcdfile.cc

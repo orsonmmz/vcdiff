@@ -92,7 +92,7 @@ bool VcdFile::parse_header() {
 
         // TODO smart parsing
         if(!strcmp(token, "$var")) {
-            Variable::type_t type;
+            Variable::var_type_t type;
             int size;
             char ident[8];
             char name[128] = { 0, };
@@ -250,7 +250,7 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
 
                 Vector*vec = static_cast<Vector*>(res->second);
                 assert(vec->size() >= new_value.length() && vec->is_vector());
-                vec->set_value(new_value);
+                vec->set_value(Value(new_value));
 
                 if(const Link*link = vec->link())
                     changes.insert(link);
@@ -270,16 +270,17 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
                 // a variable identifier
                 assert(strlen(token) > 1);
 
-                Value val = token[0];
+                Value new_value(token[0]);
                 string ident(&token[1]);
 
                 Variable*var = var_idents_[ident];
-                var->set_value(val);
+                var->set_value(new_value);
 
                 if(const Link*link = var->link())
                     changes.insert(link);
 
-                DBG("%s: %s changed to %c", filename_.c_str(), ident.c_str(), value);
+                DBG("%s: %s changed to %c",
+                        filename_.c_str(), ident.c_str(), new_value);
             }
                 break;
         }
@@ -341,7 +342,7 @@ bool VcdFile::parse_timescale() {
     return true;
 }
 
-Variable::type_t VcdFile::parse_var_type(const char*token) const {
+Variable::var_type_t VcdFile::parse_var_type(const char*token) const {
     if(!strcasecmp(token, "reg"))       return Variable::REG;
     if(!strcasecmp(token, "wire"))      return Variable::WIRE;
     if(!strcasecmp(token, "integer"))   return Variable::INTEGER;
@@ -364,7 +365,7 @@ Variable::type_t VcdFile::parse_var_type(const char*token) const {
 }
 
 void VcdFile::add_variable(const char*name, const char*ident,
-                    int size, Variable::type_t type) {
+                    int size, Variable::var_type_t type) {
     assert(size > 0 || type == Variable::REAL || type == Variable::PARAMETER);
 
     string base_name;
@@ -491,13 +492,17 @@ void VcdFile::add_variable(const char*name, const char*ident,
                     cur_vec->add_variable(idxs.back(), var_ident);
 
                 } else if(size > 1 && has_index) {
+                    // For now we support only 2-dimensional arrays
                     assert(idxs.size() == 1);
 
                     // Single word of a multidimensional array
                     int idx = idxs.front();
+
+                    // Parent vector
                     Vector*top_vec = new Vector(type, idx, idx, base_name);
 
                     if(new_ident) {
+                        // Child vector
                         Vector*vec = new Vector(type, left_idx, right_idx,
                                 base_name, ident);
                         vec->fill();
@@ -526,7 +531,7 @@ void VcdFile::add_variable(const char*name, const char*ident,
                 } else if(size == 0 && type == Variable::PARAMETER) {
                     // Size == 0 indicates a parameter
                     // (at least in the Modelsim land)
-                    var_ident = new Parameter(base_name, ident);
+                    var_ident = new Scalar(type, base_name, ident);
                     var_name = var_ident;
                     size = 1;
                 } else {

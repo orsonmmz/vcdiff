@@ -18,6 +18,7 @@
 
 // TODO real type
 // TODO ident as char[8] to speed up?
+// TODO cache full names
 
 #include "variable.h"
 #include "scope.h"
@@ -27,9 +28,10 @@
 
 using namespace std;
 
-Variable::Variable(type_t type, const string&name, const string&identifier)
+Variable::Variable(var_type_t type, Value::data_type_t data_type,
+        const string&name, const string&identifier)
     : scope_(NULL), name_(name), ident_(identifier),
-        type_(type), idx_(-1), link_(NULL) {
+        type_(type), data_type_(data_type), idx_(-1), link_(NULL) {
     assert(type_ != UNKNOWN);
 
     // The following types are not handled at the moment
@@ -37,35 +39,16 @@ Variable::Variable(type_t type, const string&name, const string&identifier)
     assert(type_ != REAL);
 }
 
-unsigned int Variable::checksum() const {
-    unsigned int res = 0;
-    std::string val = value_str();
-    std::string prev_val = prev_value_str();
-
-    for(unsigned int i = 0; i < val.size(); ++i)
-        res += val[i];
-
-    for(unsigned int i = 0; i < prev_val.size(); ++i)
-        res += prev_val[i];
-
-    for(unsigned int i = 0; i < name_.size(); ++i)
-        res += name_[i];
-
-    return res;
-}
-
-Vector::Vector(type_t type, int left_idx, int right_idx,
+Vector::Vector(var_type_t type, int left_idx, int right_idx,
         const string&name, const string&identifier)
-    : Variable(type, name, identifier),
+    : Variable(type, Value::VECTOR, name, identifier),
         left_idx_(left_idx), right_idx_(right_idx)
 {
 }
 
 Vector::~Vector() {
-    for(map<int, Variable*>::iterator it = val_.begin();
-            it != val_.end(); ++it) {
-        delete it->second;
-    }
+    for(auto&var : children_)
+        delete var.second;
 }
 
 string Vector::full_name() const {
@@ -82,7 +65,7 @@ string Vector::full_name() const {
 }
 
 void Vector::add_variable(int idx, Variable*var) {
-    assert(val_.count(idx) == 0);
+    assert(children_.count(idx) == 0);
 
     // Update the dimensions if needed
     if(left_idx_ > right_idx_) {
@@ -97,65 +80,46 @@ void Vector::add_variable(int idx, Variable*var) {
             left_idx_ = idx;
     }
 
-    val_[idx] = var;
     var->set_index(idx);
+    children_[idx] = var;
 }
 
 void Vector::set_value(const Value&value) {
-    assert(value.size <= val_.size());
+    assert(value.size <= size());
     assert(value.type == Value::VECTOR);
 
     int new_val_idx = value.size - 1;
 
-    // Copy the new value and set the remaining bits to 0
-    if(left_idx_ < right_idx_) {
-        for(int i = left_idx_; i <= right_idx_; ++i) {
-            if(new_val_idx >= 0) {
-                val_[i]->set_value(value.data.vec[new_val_idx]);
-                --new_val_idx;
-            } else {
-                val_[i]->set_value('0');
+    // Copy the new value and set the remaining bits to 0,
+    // update the children variables values
+    // TODO this could be simplified
+    if(!ident().empty()) {
+        if(range_asc()) {
+            for(int i = left_idx_; i <= right_idx_; ++i) {
+                if(new_val_idx >= 0) {
+                    children_[i]->set_value(value.data.vec[new_val_idx]);
+                    --new_val_idx;
+                } else {
+                    children_[i]->set_value('0');
+                }
+            }
+
+        } else {    // descending range
+            for(int i = left_idx_; i >= right_idx_; --i) {
+                if(new_val_idx >= 0) {
+                    children_[i]->set_value(value.data.vec[new_val_idx]);
+                    --new_val_idx;
+                } else {
+                    children_[i]->set_value('0');
+                }
             }
         }
-
-    } else {
-        for(int i = left_idx_; i >= right_idx_; --i) {
-            if(new_val_idx >= 0) {
-                val_[i]->set_value(value.data.vec[new_val_idx]);
-                --new_val_idx;
-            } else {
-                val_[i]->set_value('0');
-            }
-        }
     }
-}
-
-string Vector::value_str() const {
-    stringstream s;
-
-    for(map<int, Variable*>::const_iterator it = val_.begin();
-            it != val_.end(); ++it) {
-        s << it->second->value_str();
-    }
-
-    return s.str();
-}
-
-string Vector::prev_value_str() const {
-    stringstream s;
-
-    for(map<int, Variable*>::const_iterator it = val_.begin();
-            it != val_.end(); ++it) {
-        s << it->second->prev_value_str();
-    }
-
-    return s.str();
 }
 
 bool Vector::changed() const {
-    for(map<int, Variable*>::const_iterator it = val_.begin();
-            it != val_.end(); ++it) {
-        if(it->second->changed())
+    for(auto&var : children_) {
+        if(var.second->changed())
             return true;
     }
 
@@ -163,10 +127,44 @@ bool Vector::changed() const {
 }
 
 void Vector::clear_transition() {
-    for(map<int, Variable*>::const_iterator it = val_.begin();
-            it != val_.end(); ++it) {
-        it->second->clear_transition();
-    }
+    for(auto&var : children_)
+        var.second->clear_transition();
+}
+
+unsigned long long Vector::checksum() const {
+    unsigned long long res = 0;
+
+    for(auto&var : children_)
+        res ^= var.second->checksum();
+
+    return res;
+}
+
+unsigned long long Vector::prev_checksum() const {
+    unsigned long long res = 0;
+
+    for(auto&var : children_)
+        res ^= var.second->prev_checksum();
+
+    return res;
+}
+
+string Vector::value_str() const {
+    stringstream s;
+
+    for(auto&var : children_)
+        s << var.second->value_str();
+
+    return s.str();
+}
+
+string Vector::prev_value_str() const {
+    stringstream s;
+
+    for(auto&var : children_)
+        s << var.second->prev_value_str();
+
+    return s.str();
 }
 
 void Vector::fill() {
@@ -174,12 +172,13 @@ void Vector::fill() {
         add_variable(i, new Scalar(type()));
 }
 
-Scalar::Scalar(type_t type, const string&name, const string&identifier)
-    : Variable(type, name, identifier), val_('?'), prev_val_('?') {
+Scalar::Scalar(var_type_t type, const string&name, const string&identifier)
+    : Variable(type, Value::BIT, name, identifier),
+        value_(Value::BIT), prev_value_(Value::BIT) {
     if(type == SUPPLY0)
-        val_ = 0;
+        value_.data.bit = '0';
     else if(type == SUPPLY1)
-        val_ = 1;
+        value_.data.bit = '1';
 }
 
 string Scalar::full_name() const {
@@ -188,28 +187,13 @@ string Scalar::full_name() const {
 
     stringstream s;
     s << name() << "[" << index() << "]";
+
     return s.str();
 }
 
-string Scalar::value_str() const {
-    return string(1, val_);
-}
-
-string Scalar::prev_value_str() const {
-    return string(1, prev_val_);
-}
-
-Parameter::Parameter(const std::string&name, const std::string&identifier)
-    : Variable(PARAMETER, name, identifier),
-    value_(NULL), just_initialized_(false) {
-}
-
-Parameter::~Parameter() {
-    delete value_;
-}
-
 Alias::Alias(const string&name, Variable*target)
-    : Variable(target->type(), name, target->ident()), target_(target)
+    : Variable(target->type(), target->data_type(), name,
+            target->ident()), target_(target)
 {
     assert(target);
 }
