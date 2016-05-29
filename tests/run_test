@@ -1,5 +1,10 @@
 #!/bin/sh
-cd $@
+if [[ ! -e $1 ]]; then
+    echo "error: there is no '$1' directory"
+    exit 1
+fi
+
+cd $1
 
 rm result > /dev/null 2>&1
 TEST_VCDIFF=1 /bin/sh -c 'time ../../vcdiff *.vcd > result'
