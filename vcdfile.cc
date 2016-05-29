@@ -264,7 +264,12 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
                 parse_warn("real type is not handled yet");
                 break;
 
-            default:
+            case '0':
+            case '1':
+            case 'X':
+            case 'Z':
+            case 'x':
+            case 'z':
             {
                 // Here the expected format is: one byte value, followed by
                 // a variable identifier
@@ -282,6 +287,11 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
                 DBG("%s: %s changed to %c",
                         filename_.c_str(), ident.c_str(), new_value);
             }
+                break;
+
+            default:
+                assert(false);
+                parse_warn("invalid entry");
                 break;
         }
     }
