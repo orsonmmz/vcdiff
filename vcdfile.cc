@@ -255,7 +255,8 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
                 if(const Link*link = vec->link())
                     changes.insert(link);
 
-                DBG("%s: %s changed to %s", filename_.c_str(), vec->full_name().c_str(), new_value.c_str());
+                DBG("%s: %s changed to %s",
+                        filename_.c_str(), vec->full_name().c_str(), new_value.c_str());
             }
                 break;
 
@@ -284,8 +285,8 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
                 if(const Link*link = var->link())
                     changes.insert(link);
 
-                DBG("%s: %s changed to %c",
-                        filename_.c_str(), ident.c_str(), new_value);
+                DBG("%s: %s changed to %s",
+                        filename_.c_str(), ident.c_str(), string(new_value).c_str());
             }
                 break;
 
