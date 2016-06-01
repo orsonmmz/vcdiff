@@ -61,9 +61,9 @@ public:
     void resize(unsigned int new_size);
 
     /**
-     * @brief Computes comparison checksum, used for tests only.
+     * @brief Computes hash for quick comparison.
      */
-    unsigned long long checksum() const;
+    size_t hash() const;
 
     Value&operator=(const Value&other);
     bool operator==(const Value&other) const;

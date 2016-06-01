@@ -18,6 +18,7 @@
 
 #include "value.h"
 
+#include <functional>
 #include <sstream>
 
 #include <cstring>
@@ -89,30 +90,22 @@ void Value::resize(unsigned int new_size) {
     size = new_size;
 }
 
-unsigned long long Value::checksum() const {
-    unsigned long long res = type;
-    const int checksum_bit_size = sizeof(unsigned long long) * 8;
-    res <<= checksum_bit_size / 2;
+size_t Value::hash() const {
+    size_t res = 0;
 
     switch(type) {
         case BIT:
-            res += data.bit;
+            res = std::hash<bit_t>()(data.bit);
             break;
 
         case VECTOR:
             for(unsigned int i = 0; i < size; ++i)
-                res += data.vec[i] << (i % checksum_bit_size);
+                res += std::hash<bit_t>()(data.vec[i]);
             break;
 
         case REAL:
-        {
-            union float_int {
-                float f;
-                unsigned int i;
-            } *u = (float_int*)&data.real;
-            res += u->i;
+            res = std::hash<float>()(data.real);
             break;
-        }
 
         default:
             assert(false);
@@ -121,6 +114,7 @@ unsigned long long Value::checksum() const {
 
     return res;
 }
+
 
 Value&Value::operator=(const Value&other) {
     assert(type == other.type || type == UNDEFINED);

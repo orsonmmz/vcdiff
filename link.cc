@@ -32,15 +32,15 @@ Link::Link(Variable*first, Variable*second)
 }
 
 bool Link::compare() const {
-    return ((first_->checksum() == second_->checksum())
-        && (compare_states || first_->prev_checksum() == second_->prev_checksum()));
+    return ((first_->hash() == second_->hash())
+        && (compare_states || first_->prev_hash() == second_->prev_hash()));
 }
 
-unsigned long long Link::checksum() const {
-    unsigned long long first = first_->checksum() ^ first_->prev_checksum();
-    unsigned long long second = second_->checksum() ^ first_->prev_checksum();
+size_t Link::hash() const {
+    size_t first = first_->hash() ^ first_->prev_hash();
+    size_t second = second_->hash() ^ first_->prev_hash();
 
-    return first ^ second;
+    return (first + 1) * (second + 1);
 }
 
 ostream&operator<<(ostream&out, const Link&link) {

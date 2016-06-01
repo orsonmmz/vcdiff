@@ -19,6 +19,7 @@
 #ifndef VARIABLE_H
 #define VARIABLE_H
 
+#include <functional>
 #include <map>
 #include <string>
 
@@ -162,14 +163,14 @@ public:
     virtual void clear_transition() = 0;
 
     /**
-     * @brief Computes the current value checksum, for comparisons.
+     * @brief Computes the current value hash for quick comparisons.
      */
-    virtual unsigned long long checksum() const = 0;
+    virtual size_t hash() const = 0;
 
     /**
-     * @brief Computes the previous value checksum, for comparisons.
+     * @brief Computes the previous value hash for quick comparisons.
      */
-    virtual unsigned long long prev_checksum() const = 0;
+    virtual size_t prev_hash() const = 0;
 
     /**
      * @brief Returns the current variable value as a string.
@@ -246,8 +247,8 @@ public:
     bool changed() const;
     void clear_transition();
 
-    unsigned long long checksum() const;
-    unsigned long long prev_checksum() const;
+    size_t hash() const;
+    size_t prev_hash() const;
 
     std::string value_str() const;
     std::string prev_value_str() const;
@@ -337,12 +338,12 @@ public:
         prev_value_ = value_;
     }
 
-    unsigned long long checksum() const {
-        return value_.checksum();
+    size_t hash() const {
+        return value_.hash();
     }
 
-    unsigned long long prev_checksum() const {
-        return prev_value_.checksum();
+    size_t prev_hash() const {
+        return prev_value_.hash();
     }
 
     std::string value_str() const {
@@ -393,12 +394,12 @@ public:
         target_->clear_transition();
     }
 
-    unsigned long long checksum() const {
-        return target_->checksum();
+    size_t hash() const {
+        return target_->hash();
     }
 
-    unsigned long long prev_checksum() const {
-        return target_->checksum();
+    size_t prev_hash() const {
+        return target_->hash();
     }
 
     std::string value_str() const {

@@ -41,9 +41,9 @@ public:
     bool compare() const;
 
     /*
-     * Computes comparison checksum, used for tests only.
+     * Computes object's hash value, used to verify unit tests.
      */
-    unsigned long long checksum() const;
+    size_t hash() const;
 
 private:
     Variable*first_;

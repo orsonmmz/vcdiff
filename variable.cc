@@ -129,20 +129,24 @@ void Vector::clear_transition() {
         var.second->clear_transition();
 }
 
-unsigned long long Vector::checksum() const {
-    unsigned long long res = 0;
+size_t Vector::hash() const {
+    size_t res = 0;
 
-    for(auto&var : children_)
-        res ^= var.second->checksum();
+    for(auto&var : children_) {
+        res ^= var.second->hash();
+        res <<= 1;
+    }
 
     return res;
 }
 
-unsigned long long Vector::prev_checksum() const {
-    unsigned long long res = 0;
+size_t Vector::prev_hash() const {
+    size_t res = 0;
 
-    for(auto&var : children_)
-        res ^= var.second->prev_checksum();
+    for(auto&var : children_) {
+        res ^= var.second->prev_hash();
+        res <<= 1;
+    }
 
     return res;
 }

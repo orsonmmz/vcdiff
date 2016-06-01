@@ -223,17 +223,17 @@ void Comparator::check_value_changes() {
 #endif
 
         if(test_mode) {
-            unsigned long long checksum = 0;
+            size_t hash = 0;
 
             for(set<const Link*>::iterator it = changes.begin();
                     it != changes.end(); ++it) {
                 const Link*link = *it;
-                checksum += link->checksum();
+                hash += link->hash();
                 link->first()->clear_transition();
                 link->second()->clear_transition();
             }
 
-            cout << current_time << ":" << checksum << endl;
+            cout << current_time << ":" << hash << endl;
 
         } else {
             bool emitted_diff_header = false;
@@ -278,9 +278,7 @@ bool Comparator::compare_and_match(Variable*var1, Variable*var2) {
     }
 
     if(!ignore_var_index) {
-        if(var1->size() == 1) {
-            assert(var2->size() == 1);
-
+        if(!var1->is_vector()) {
             if(var1->index() != var2->index()) {
                 DBG("different indexes");
                 return false;
@@ -295,9 +293,16 @@ bool Comparator::compare_and_match(Variable*var1, Variable*var2) {
                 DBG("different ranges");
                 return false;
             }
+
+            // Match array elements (vec1 & vec2 ranges are equal)
+            for(int i = vec1->min_idx(); i <= vec1->max_idx(); ++i) {
+                DBG("- comparing array elements for %s and %s",
+                        vec1->full_name().c_str(), vec2->full_name().c_str())
+                compare_and_match((*vec1)[i], (*vec2)[i]);
+            }
         }
     }
-
+    // TODO create link, only if one of vars has an ident assigned
     Link*link = new Link(var1, var2);
     var1->set_link(link);
     var2->set_link(link);
