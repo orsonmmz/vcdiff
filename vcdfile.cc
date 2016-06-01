@@ -261,8 +261,28 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
                 break;
 
             case 'r':
-                assert(false);  // TODO
-                parse_warn("real type is not handled yet");
+            {
+                Value new_value((float) ::atof(&token[1]));
+
+                // Get the variable identifier
+                tokenizer_.get(token);
+                string ident(token);
+
+                VarStringMap::iterator res = var_idents_.find(ident);
+                if(res == var_idents_.end()) {
+                    parse_error("invalid variable identifier");
+                    return false;
+                }
+
+                Variable*var = res->second;
+                var->set_value(new_value);
+
+                if(const Link*link = var->link())
+                    changes.insert(link);
+
+                DBG("%s: %s changed to %s",
+                    filename_.c_str(), var->full_name().c_str(), string(new_value).c_str());
+            }
                 break;
 
             case '0':
@@ -452,6 +472,9 @@ void VcdFile::add_variable(const char*name, const char*ident,
     }
 
     if(new_variable) {
+        Value::data_type_t data_type =
+            (type == Variable::PARAMETER) ? Value::REAL : Value::BIT;
+
         switch(type) {
             case Variable::TIME:
             case Variable::INTEGER:
@@ -460,11 +483,11 @@ void VcdFile::add_variable(const char*name, const char*ident,
                 assert(size > 0);
 
             case Variable::PARAMETER:
-
+                // Parameters are stored as numbers
                 if(size == 1 && !has_index) {
                     // The simplest case: a scalar
                     if(new_ident) {
-                        var_name = new Scalar(type, base_name, ident);
+                        var_name = new Scalar(type, data_type, base_name, ident);
                         var_ident = var_name;
                     } else {
                         var_name = var_ident;
@@ -498,7 +521,7 @@ void VcdFile::add_variable(const char*name, const char*ident,
 
                     // Now add the scalar at the bottom of the hierarchy
                     if(new_ident)
-                        var_ident = new Scalar(type, base_name, ident);
+                        var_ident = new Scalar(type, data_type, base_name, ident);
 
                     cur_vec->add_variable(idxs.back(), var_ident);
 
@@ -542,7 +565,7 @@ void VcdFile::add_variable(const char*name, const char*ident,
                 } else if(size == 0 && type == Variable::PARAMETER) {
                     // Size == 0 indicates a parameter
                     // (at least in the Modelsim land)
-                    var_ident = new Scalar(type, base_name, ident);
+                    var_ident = new Scalar(type, data_type, base_name, ident);
                     var_name = var_ident;
                     size = 1;
                 } else {
@@ -594,7 +617,7 @@ void VcdFile::add_variable(const char*name, const char*ident,
                     }
 
                     if(new_ident)
-                        var_ident = new Scalar(type, base_name, ident);
+                        var_ident = new Scalar(type, Value::BIT, base_name, ident);
 
                     vec->add_variable(idxs.back(), var_ident);
 

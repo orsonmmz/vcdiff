@@ -317,8 +317,8 @@ private:
 
 class Scalar : public Variable {
 public:
-    Scalar(var_type_t type, const std::string&name = "",
-            const std::string&identifier = "");
+    Scalar(var_type_t type, Value::data_type_t data_type,
+            const std::string&name = "", const std::string&identifier = "");
 
     std::string full_name() const;
 

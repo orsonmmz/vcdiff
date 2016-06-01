@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// TODO real type
 // TODO ident as char[8] to speed up?
 // TODO cache full names
 
@@ -36,7 +35,6 @@ Variable::Variable(var_type_t type, Value::data_type_t data_type,
 
     // The following types are not handled at the moment
     assert(type_ != EVENT);
-    assert(type_ != REAL);
 }
 
 Vector::Vector(var_type_t type, int left_idx, int right_idx,
@@ -169,12 +167,13 @@ string Vector::prev_value_str() const {
 
 void Vector::fill() {
     for(int i = min_idx(); i <= max_idx(); ++i)
-        add_variable(i, new Scalar(type()));
+        add_variable(i, new Scalar(type(), Value::BIT));
 }
 
-Scalar::Scalar(var_type_t type, const string&name, const string&identifier)
-    : Variable(type, Value::BIT, name, identifier),
-        value_(Value::BIT), prev_value_(Value::BIT) {
+Scalar::Scalar(var_type_t type, Value::data_type_t data_type,
+        const string&name, const string&identifier)
+    : Variable(type, data_type, name, identifier),
+        value_(data_type), prev_value_(data_type) {
     if(type == SUPPLY0)
         value_.data.bit = '0';
     else if(type == SUPPLY1)
