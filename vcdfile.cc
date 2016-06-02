@@ -227,7 +227,11 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
                 break;
 
             case '$':
-                if(warn_unexpected_tokens) {
+                // Some simulators (e.g. Modelsim, Icarus) put '$dumpvars'
+                // right after #0 timestamp, so there is no reason to
+                // display a warning
+                if(warn_unexpected_tokens
+                        && strcmp(&token[1], "dumpvars") && cur_timestamp_ == 0) {
                     parse_warn("unexpected section token");
                 }
                 break;
