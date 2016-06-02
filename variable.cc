@@ -30,11 +30,33 @@ using namespace std;
 Variable::Variable(var_type_t type, Value::data_type_t data_type,
         const string&name, const string&identifier)
     : scope_(NULL), name_(name), ident_(identifier),
-        type_(type), data_type_(data_type), idx_(-1), link_(NULL) {
+        type_(type), data_type_(data_type),
+        parent_(NULL), idx_(-1), link_(NULL) {
     assert(type_ != UNKNOWN);
 
     // The following types are not handled at the moment
     assert(type_ != EVENT);
+}
+
+string Variable::full_name() const {
+    stringstream s;
+    s << name() << full_index();
+    return s.str();
+}
+
+std::string Variable::full_index(bool last) const {
+    std::stringstream s;
+    const Variable*p = this;
+
+    while((p = p->parent()))
+        s << p->full_index(false);
+
+    if(last)
+        s << index_str();
+    else if(idx_ >= 0)
+        s << "[" << idx_ << "]";
+
+    return s.str();
 }
 
 Vector::Vector(var_type_t type, int left_idx, int right_idx,
@@ -47,19 +69,6 @@ Vector::Vector(var_type_t type, int left_idx, int right_idx,
 Vector::~Vector() {
     for(auto&var : children_)
         delete var.second;
-}
-
-string Vector::full_name() const {
-    stringstream s;
-    s << name() << "[";
-
-    if(left_idx_ != right_idx_)
-        s << left_idx_ << ":" << right_idx_;
-    else
-        s << left_idx_;
-
-    s << "]";
-    return s.str();
 }
 
 void Vector::add_variable(int idx, Variable*var) {
@@ -78,7 +87,7 @@ void Vector::add_variable(int idx, Variable*var) {
             left_idx_ = idx;
     }
 
-    var->set_index(idx);
+    var->set_index(idx, this);
     children_[idx] = var;
 }
 
@@ -169,6 +178,23 @@ string Vector::prev_value_str() const {
     return s.str();
 }
 
+string Vector::index_str() const {
+    stringstream s;
+
+    if(index() >= 0)
+        s << "[" << index() << "]";
+
+    s << "[" << left_idx_;
+
+    if(left_idx_ != right_idx_)
+        s << ":" << right_idx_;
+
+    s << "]";
+
+    return s.str();
+}
+
+
 void Vector::fill() {
     for(int i = min_idx(); i <= max_idx(); ++i)
         add_variable(i, new Scalar(type(), Value::BIT));
@@ -184,12 +210,12 @@ Scalar::Scalar(var_type_t type, Value::data_type_t data_type,
         value_.data.bit = '1';
 }
 
-string Scalar::full_name() const {
-    if(index() == -1)
-        return name();
-
+string Scalar::index_str() const {
     stringstream s;
-    s << name() << "[" << index() << "]";
+    int idx = index();
+
+    if(idx >= 0)
+        s << "[" << idx << "]";
 
     return s.str();
 }

@@ -68,12 +68,9 @@ public:
     }
 
     /**
-     * @brief If there is a scope assigned, it returns a full name including
-     * scope. Otherwise it returns the variable name.
+     * @brief Returns the full name including indexes.
      */
-    virtual std::string full_name() const {
-        return name_;
-    }
+    std::string full_name() const;
 
     /**
      * @brief Returns identifier associated with the variable.
@@ -97,13 +94,15 @@ public:
     }
 
     /**
-     * @brief Sets an index for the variable, in case the variable is a part
-     * of a vector. It can be done only once for a variable.
+     * @brief Sets an index & parent for the variable, in case the variable
+     * is a part of a vector. It can be done only once for a variable.
      */
-    inline void set_index(int index) {
+    inline void set_index(int index, const Variable*parent) {
         assert(index >= 0 || index == idx_);
+        assert(parent_ == NULL && parent != NULL);
 
         idx_ = index;
+        parent_ = parent;
     }
 
     /**
@@ -130,6 +129,11 @@ public:
     inline void set_link(const Link*link) {
         assert(link_ == NULL);
         link_ = link;
+    }
+
+    // TODO
+    virtual const Variable*parent() const {
+        return parent_;
     }
 
     /**
@@ -182,6 +186,18 @@ public:
      */
     virtual std::string prev_value_str() const = 0;
 
+    /**
+     * @brief Displays indexes of the variable.
+     */
+    virtual std::string index_str() const = 0;
+
+protected:
+    /**
+     * @brief Returns a string containing full index hierarchy, formatted
+     * as '[w][x][y:z]'.
+     */
+    std::string full_index(bool last = true) const;
+
 private:
     ///> Parent scope
     Scope*scope_;
@@ -198,6 +214,9 @@ private:
     ///> Stored data type
     Value::data_type_t data_type_;
 
+    ///> Parent variable, if it is a part of a multidimensional vector
+    const Variable*parent_;
+
     ///> Variable index, if the variable is a part of a vector
     int idx_;
 
@@ -211,8 +230,6 @@ public:
             const std::string&name = "", const std::string&identifier = "");
 
     ~Vector();
-
-    std::string full_name() const;
 
     inline int left_idx() const {
         return left_idx_;
@@ -252,6 +269,8 @@ public:
 
     std::string value_str() const;
     std::string prev_value_str() const;
+
+    std::string index_str() const;
 
     ///> Checks if an index fits the vector range.
     inline bool is_valid_idx(int idx) const {
@@ -321,8 +340,6 @@ public:
     Scalar(var_type_t type, Value::data_type_t data_type,
             const std::string&name = "", const std::string&identifier = "");
 
-    std::string full_name() const;
-
     void set_value(const Value&value) {
         prev_value_ = value_;
         value_ = value;
@@ -354,6 +371,8 @@ public:
         return std::string(prev_value_);
     }
 
+    std::string index_str() const;
+
 private:
     Value value_, prev_value_;
 };
@@ -366,12 +385,12 @@ public:
         return target_;
     }
 
-    std::string full_name() const {
-        return target_->full_name();
-    }
-
     const Link*link() const {
         return target_->link();
+    }
+
+    const Variable*parent() const {
+        return target_->parent();
     }
 
     unsigned int size() const {
@@ -408,6 +427,10 @@ public:
 
     std::string prev_value_str() const {
         return target_->prev_value_str();
+    }
+
+    std::string index_str() const {
+        return target_->index_str();
     }
 
 private:
