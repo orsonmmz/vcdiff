@@ -302,12 +302,17 @@ bool Comparator::compare_and_match(Variable*var1, Variable*var2) {
             }
         }
     }
-    // TODO create link, only if one of vars has an ident assigned
-    Link*link = new Link(var1, var2);
-    var1->set_link(link);
-    var2->set_link(link);
-    links_.push_back(link);
-    DBG("linked");
+
+    // Create a link, only if at least one of the variables has an identifier
+    // assigned. Otherwise VCD file does not store any value changes
+    // for the variable and there is no point in linking it to anything.
+    if(!var1->ident().empty() || !var2->ident().empty()) {
+        Link*link = new Link(var1, var2);
+        var1->set_link(link);
+        var2->set_link(link);
+        links_.push_back(link);
+        DBG("linked");
+    }
 
     return true;
 }
