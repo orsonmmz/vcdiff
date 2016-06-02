@@ -81,7 +81,16 @@ private:
         assert(cur_scope_);
     }
 
+    // Parsers for specific header sections
+    bool parse_enddefinitions();
+    bool parse_scope();
     bool parse_timescale();
+    bool parse_upscope();
+    bool parse_var();
+
+    // Generic functions to handle particular header sections
+    bool parse_not_handled(const char*section);
+    bool parse_skip_to_end(const char*section);
 
     // Skips all tokens until the next $end token
     inline bool skip_to_end() {

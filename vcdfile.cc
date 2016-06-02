@@ -40,161 +40,68 @@ VcdFile::VcdFile(const char*filename)
 {
 }
 
-// TODO make it compatible with different order of sections
 bool VcdFile::parse_header() {
     assert(tokenizer_.valid());
 
     char*token;
+    bool result;
 
-    // $date section
-    if(!tokenizer_.expect("$date")) {
-        parse_error("expected $date section");
-        return false;
-    }
-
-    if(!skip_to_end()) {
-        parse_error("expected $end token for $date section");
-        return false;
-    }
-
-    // $version section
-    if(!tokenizer_.expect("$version")) {
-        parse_error("expected $version section");
-        return false;
-    }
-
-    if(!skip_to_end()) {
-        parse_error("expected $end token for $version section");
-        return false;
-    }
-
-    // $timescale section
-    if(!tokenizer_.expect("$timescale")) {
-        parse_error("expected $timescale section");
-        return false;
-    }
-
-    if(!parse_timescale()) {
-        return false;
-    }
-
-    if(!skip_to_end()) {
-        parse_error("expected $end token for $timescale section");
-        return false;
-    }
-
-    // Variables section
     while(true) {
         if(tokenizer_.get(token) == 0) {
             parse_error("unexpected end of file");
             return false;
         }
 
-        // TODO smart parsing
         if(!strcmp(token, "$var")) {
-            Variable::var_type_t type;
-            int size;
-            char ident[8];
-            char name[128] = { 0, };
-
-            tokenizer_.get(token);
-            type = parse_var_type(token);
-            if(type == Variable::UNKNOWN) {
-                parse_error("unknown variable type");
-                return false;
-            }
-
-            tokenizer_.get(token);
-            if(sscanf(token, "%d", &size) != 1) {
-                parse_error("expected variable size");
-                return false;
-            }
-
-            tokenizer_.get(token);
-            strncpy(ident, token, sizeof(ident));
-
-            // Name: concatenate strings, until $end token arrives
-            tokenizer_.get(token);
-            while(strcmp(token, "$end") && tokenizer_.valid()) {
-                strncat(name, token, sizeof(name) - strlen(name) - 1);
-                tokenizer_.get(token);
-            }
-
-            if(strlen(name) == sizeof(name))
-                parse_warn("too long variable name, could have been clamped");
-
-            if(strlen(ident) == sizeof(ident))
-                parse_warn("too long identifier name, could have been clamped");
-
-            if(!ignore_case)
-                to_lower_case(name);
-
-            add_variable(name, ident, size, type);
+            result = parse_var();
 
         } else if(!strcmp(token, "$scope")) {
-            // Scope type = begin | fork | function | module | task
-            tokenizer_.get(token);
-
-            if(strcmp(token, "begin") && strcmp(token, "fork")
-                    && strcmp(token, "function") && strcmp(token, "module")
-                    && strcmp(token, "task")) {
-                parse_warn("unknown scope type");
-            }
-
-            // Scope name
-            tokenizer_.get(token);
-
-            if(!ignore_case)
-                to_lower_case(token);
-
-            push_scope(token);
-
-            if(!tokenizer_.expect("$end")) {
-                parse_error("expected $end for $scope section");
-                return false;
-            }
+            result = parse_scope();
 
         } else if(!strcmp(token, "$upscope")) {
-            pop_scope();
-
-            if(!tokenizer_.expect("$end")) {
-                return false;
-            }
+            result = parse_upscope();
 
         } else if(!strcmp(token, "$enddefinitions")) {
             // Finished processing the header
-            if(!tokenizer_.expect("$end")) {
-                parse_error("expected $end for $enddefinitions section");
-                return false;
-            }
+            return parse_enddefinitions();
 
-            DBG("%s: header correct", filename_.c_str());
-            return true;
+        } else if(!strcmp(token, "$timescale")) {
+            result = parse_timescale();
+
+        } else if(!strcmp(token, "$version")) {
+            result = parse_skip_to_end(&token[1]);
 
         } else if(!strcmp(token, "$comment")) {
-            if(!skip_to_end()) {
-                parse_error("expected $end for $comment section");
-                return false;
-            }
+            result = parse_skip_to_end(&token[1]);
+
+        } else if(!strcmp(token, "$date")) {
+            result = parse_skip_to_end(&token[1]);
 
         } else if(!strcmp(token, "$dumpvars")) {
             // Do nothing, the values are going to be initialized anyway
+            result = true;
 
         } else if(!strcmp(token, "$dumpon")) {
-            parse_warn("$dumpon section is not handled");   // TODO
+            result = parse_not_handled(&token[1]);
 
         } else if(!strcmp(token, "$dumpoff")) {
-            parse_warn("$dumpoff section is not handled");  // TODO
+            result = parse_not_handled(&token[1]);
 
         } else if(!strcmp(token, "$dumpall")) {
-            parse_warn("$dumpall section is not handled");  // TODO
+            result = parse_not_handled(&token[1]);
 
         } else {
+            // Unknown token
             if(warn_unexpected_tokens) {
                 parse_error("unexpected token"); DBG(token);
-                return false;
+                result = false;
+            } else {
+                result = true;
             }
         }
+
+        if(!result)
+            return false;
     }
 
     return false;
@@ -336,6 +243,46 @@ void VcdFile::show_state() const {
     cout << endl;
 }
 
+bool VcdFile::parse_enddefinitions() {
+    if(!tokenizer_.expect("$end")) {
+        parse_error("expected $end for $enddefinitions section");
+        return false;
+    }
+
+    DBG("%s: header correct", filename_.c_str());
+    return true;
+}
+
+bool VcdFile::parse_scope() {
+    char*token;
+
+    // Scope type = begin | fork | function | module | task
+    tokenizer_.get(token);
+
+    if(strcmp(token, "begin")
+            && strcmp(token, "fork")
+            && strcmp(token, "function")
+            && strcmp(token, "module")
+            && strcmp(token, "task")) {
+        parse_warn("unknown scope type");
+    }
+
+    // Scope name
+    tokenizer_.get(token);
+
+    if(!ignore_case)
+        to_lower_case(token);
+
+    push_scope(token);
+
+    if(!tokenizer_.expect("$end")) {
+        parse_error("expected $end for $scope section");
+        return false;
+    }
+
+    return true;
+}
+
 bool VcdFile::parse_timescale() {
     int timebase;
     char timeunit[3];
@@ -372,7 +319,84 @@ bool VcdFile::parse_timescale() {
         return false;
     }
 
+    if(!skip_to_end()) {
+        parse_error("expected $end token for $timescale section");
+        return false;
+    }
+
     DBG("%s\ttimescale = %d", filename_.c_str(), timescale_);
+
+    return true;
+}
+
+bool VcdFile::parse_upscope() {
+    pop_scope();
+
+    if(!tokenizer_.expect("$end")) {
+        parse_error("expected $end for $upscope section");
+        return false;
+    }
+
+    return true;
+}
+
+bool VcdFile::parse_var() {
+    Variable::var_type_t type;
+    int size;
+    char ident[8];
+    char name[128] = { 0, };
+    char*token;
+
+    tokenizer_.get(token);
+    type = parse_var_type(token);
+    if(type == Variable::UNKNOWN) {
+        parse_error("unknown variable type");
+        return false;
+    }
+
+    tokenizer_.get(token);
+    if(sscanf(token, "%d", &size) != 1) {
+        parse_error("expected variable size");
+        return false;
+    }
+
+    tokenizer_.get(token);
+    strncpy(ident, token, sizeof(ident));
+
+    // Name: concatenate strings, until $end token arrives
+    tokenizer_.get(token);
+    while(strcmp(token, "$end") && tokenizer_.valid()) {
+        strncat(name, token, sizeof(name) - strlen(name) - 1);
+        tokenizer_.get(token);
+    }
+
+    if(strlen(name) == sizeof(name))
+        parse_warn("too long variable name, could have been clamped");
+
+    if(strlen(ident) == sizeof(ident))
+        parse_warn("too long identifier name, could have been clamped");
+
+    if(!ignore_case)
+        to_lower_case(name);
+
+    add_variable(name, ident, size, type);
+
+    return true;
+}
+
+bool VcdFile::parse_not_handled(const char*section) {
+    // TODO use section name
+    parse_warn("section is not handled");
+
+    return true;
+}
+
+bool VcdFile::parse_skip_to_end(const char*section_name) {
+    if(!skip_to_end()) {
+        // TODO use section name
+        parse_error("expected $end token");
+        return false;
+    }
 
     return true;
 }
