@@ -1,0 +1,5 @@
+#!/bin/sh
+rm log || true
+for test in `find . -type d ! -name \.`; do
+    echo $test : `./run_test $test` | tee -a log
+done
