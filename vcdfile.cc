@@ -408,6 +408,16 @@ bool VcdFile::parse_skip_to_end(const char*section) {
     return true;
 }
 
+bool VcdFile::skip_to_end() {
+    while(!tokenizer_.expect("$end")) {
+        // Another section detected
+        if(*tokenizer_.current() == '$')
+            return false;
+    }
+
+    return tokenizer_.valid();
+}
+
 Variable::var_type_t VcdFile::parse_var_type(const char*token) const {
     if(!strcasecmp(token, "reg"))       return Variable::REG;
     if(!strcasecmp(token, "wire"))      return Variable::WIRE;

@@ -83,10 +83,7 @@ private:
     bool parse_skip_to_end(const char*section);
 
     // Skips all tokens until the next $end token
-    inline bool skip_to_end() {
-        while(!tokenizer_.expect("$end"));
-        return tokenizer_.valid();
-    }
+    bool skip_to_end();
 
     Variable::var_type_t parse_var_type(const char*token) const;
 

@@ -35,7 +35,20 @@ public:
      * @return int number of read characters.
      */
     int get(char*&dest);
+
+    /*
+     * @brief Gets a token, compares with the expected one and returns
+     * the comparison result (true if there is a match).
+     * @param token is the expected token.
+     */
     bool expect(const char*token);
+
+    /*
+     * @brief Returns the current token, without reading another one.
+     */
+    inline const char*current() const {
+        return buf_cur_;
+    }
 
     inline int line_number() const {
         return line_number_;
@@ -67,6 +80,9 @@ private:
 
     // Buffer to store the currently processed line
     char*buf_;
+
+    // Pointer to the current token
+    char*buf_cur_;
 
     // Pointer to the next token
     char*buf_ptr_;

@@ -27,6 +27,7 @@ Tokenizer::Tokenizer(const string&filename)
 {
     buf_ = new char[buf_size_];
     buf_ptr_ = buf_;
+    buf_cur_ = buf_;
 
     // Mark buffer as empty
     *buf_ptr_ = 0;
@@ -47,6 +48,7 @@ int Tokenizer::get(char*&dest) {
 
     // Set the pointer to a new token
     dest = buf_ptr_;
+    buf_cur_ = buf_ptr_;
 
     // Move to the next token
     int len = 0;
@@ -97,6 +99,7 @@ bool Tokenizer::expect(const char*token) {
 bool Tokenizer::fill_if_empty() {
     if(*buf_ptr_ == 0 || *buf_ptr_ == '\n' || *buf_ptr_ == '\r') {
         buf_ptr_ = buf_;
+        buf_cur_ = buf_;
         buf_[0] = 0;
 
         // Try until we get non-whitespace characters or the file is finished
