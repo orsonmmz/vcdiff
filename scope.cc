@@ -26,6 +26,15 @@ using namespace std;
 Scope::Scope(const string&name, Scope*parent)
     : name_(name), parent_(parent)
 {
+    // Cache the full name, including hierarchy
+    const Scope*s = parent_;
+    full_name_ = name_;
+
+    // Concatenate scope names following the hierarchy to the root scope
+    while(s) {
+        full_name_ = s->name() + "." + full_name_;
+        s = s->parent();
+    }
 }
 
 Scope::~Scope() {
@@ -38,22 +47,6 @@ Scope::~Scope() {
             it != vars_.end(); ++it) {
         delete it->second;
     }
-}
-
-string Scope::full_name() {
-    if(full_name_.empty()) {
-        // Cache the full name
-        const Scope*s = parent_;
-        full_name_ = name_;
-
-        // Concatenate scope names following the hierarchy to the root scope
-        while(s) {
-            full_name_ = s->name() + "." + full_name_;
-            s = s->parent();
-        }
-    }
-
-    return full_name_;
 }
 
 Scope*Scope::make_scope(const string&name) {

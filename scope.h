@@ -37,7 +37,9 @@ public:
         return name_;
     }
 
-    std::string full_name();
+    inline const std::string&full_name() const {
+        return full_name_;
+    }
 
     Scope*make_scope(const std::string&name);
     Scope*get_scope(const std::string&name);

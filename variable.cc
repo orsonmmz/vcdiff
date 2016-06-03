@@ -17,7 +17,6 @@
  */
 
 // TODO ident as char[8] to speed up?
-// TODO cache full names
 
 #include "variable.h"
 #include "scope.h"
@@ -38,10 +37,8 @@ Variable::Variable(var_type_t type, Value::data_type_t data_type,
     assert(type_ != EVENT);
 }
 
-string Variable::full_name() const {
-    stringstream s;
-    s << name() << full_index();
-    return s.str();
+void Variable::recache_var_name() {
+    full_name_ = name() + full_index();
 }
 
 std::string Variable::full_index(bool last) const {

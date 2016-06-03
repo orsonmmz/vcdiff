@@ -70,7 +70,9 @@ public:
     /**
      * @brief Returns the full name including indexes.
      */
-    std::string full_name() const;
+    inline const std::string& full_name() const {
+        return full_name_.empty() ? name_ : full_name_;
+    }
 
     /**
      * @brief Returns identifier associated with the variable.
@@ -103,6 +105,7 @@ public:
 
         idx_ = index;
         parent_ = parent;
+        recache_var_name();
     }
 
     /**
@@ -193,6 +196,11 @@ public:
 
 protected:
     /**
+     * @brief Updates the cached full name.
+     */
+    void recache_var_name();
+
+    /**
      * @brief Returns a string containing full index hierarchy, formatted
      * as '[w][x][y:z]'.
      */
@@ -204,6 +212,9 @@ private:
 
     ///> Variable name
     const std::string name_;
+
+    /// Cached full variable name
+    std::string full_name_;
 
     ///> Variable identifier
     const std::string ident_;
