@@ -23,6 +23,14 @@
 #include <list>
 #include <cstring>
 
+#define PARSE_WARN(x...)\
+    fprintf(stderr, "Warning: %s:%d: ", filename().c_str(), line_number());\
+    fprintf(stderr, x); fprintf(stderr, "\n");
+
+#define PARSE_ERROR(x...)\
+    fprintf(stderr, "Error: %s:%d: ", filename().c_str(), line_number());\
+    fprintf(stderr, x); fprintf(stderr, "\n");
+
 using namespace std;
 
 // Converts a string to lower case in-place
@@ -48,7 +56,7 @@ bool VcdFile::parse_header() {
 
     while(true) {
         if(tokenizer_.get(token) == 0) {
-            parse_error("unexpected end of file");
+            PARSE_ERROR("unexpected end of file");
             return false;
         }
 
@@ -93,7 +101,7 @@ bool VcdFile::parse_header() {
         } else {
             // Unknown token
             if(warn_unexpected_tokens) {
-                parse_error("unexpected token"); DBG(token);
+                PARSE_ERROR("unexpected token: %s", token);
                 result = false;
             } else {
                 result = true;
@@ -120,7 +128,7 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
         switch(token[0]) {
             case '#':
                 if(sscanf(token, "#%lu", &tstamp) != 1) {
-                    parse_error("invalid timestamp");
+                    PARSE_ERROR("invalid timestamp: %s", token);
                     return false;
                 }
 
@@ -139,7 +147,7 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
                 // display a warning
                 if(warn_unexpected_tokens
                         && strcmp(&token[1], "dumpvars") && cur_timestamp_ == 0) {
-                    parse_warn("unexpected section token");
+                    PARSE_WARN("unexpected section token: %s", token);
                 }
                 break;
 
@@ -155,7 +163,7 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
 
                 VarStringMap::iterator res = var_idents_.find(ident);
                 if(res == var_idents_.end()) {
-                    parse_error("invalid variable identifier");
+                    PARSE_ERROR("invalid variable identifier: %s", ident.c_str());
                     return false;
                 }
 
@@ -181,7 +189,7 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
 
                 VarStringMap::iterator res = var_idents_.find(ident);
                 if(res == var_idents_.end()) {
-                    parse_error("invalid variable identifier");
+                    PARSE_ERROR("invalid variable identifier: %s", ident.c_str());
                     return false;
                 }
 
@@ -223,7 +231,7 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
 
             default:
                 assert(false);
-                parse_warn("invalid entry");
+                PARSE_WARN("invalid entry: %s", token);
                 break;
         }
     }
@@ -245,7 +253,7 @@ void VcdFile::show_state() const {
 
 bool VcdFile::parse_enddefinitions() {
     if(!tokenizer_.expect("$end")) {
-        parse_error("expected $end for $enddefinitions section");
+        PARSE_ERROR("expected $end for $enddefinitions section");
         return false;
     }
 
@@ -264,7 +272,7 @@ bool VcdFile::parse_scope() {
             && strcmp(token, "function")
             && strcmp(token, "module")
             && strcmp(token, "task")) {
-        parse_warn("unknown scope type");
+        PARSE_WARN("unknown scope type: %s", token);
     }
 
     // Scope name
@@ -276,7 +284,7 @@ bool VcdFile::parse_scope() {
     push_scope(token);
 
     if(!tokenizer_.expect("$end")) {
-        parse_error("expected $end for $scope section");
+        PARSE_ERROR("expected $end for $scope section");
         return false;
     }
 
@@ -299,7 +307,7 @@ bool VcdFile::parse_timescale() {
         case 1:     timescale_ = 0; break;
         case 10:    timescale_ = 1; break;
         case 100:   timescale_ = 2; break;
-        default: parse_error("invalid timescale base"); return false;
+        default: PARSE_ERROR("invalid timescale base: %s", token); return false;
     }
 
     if(!strcmp(timeunit, "fs")) {
@@ -315,12 +323,12 @@ bool VcdFile::parse_timescale() {
     } else if(!strcmp(timeunit, "s")) {
         // do nothing, it is just to check if timeunits are correct
     } else {
-        parse_error("invalid timescale units");
+        PARSE_ERROR("invalid timescale units: %s", token);
         return false;
     }
 
     if(!skip_to_end()) {
-        parse_error("expected $end token for $timescale section");
+        PARSE_ERROR("expected $end token for $timescale section");
         return false;
     }
 
@@ -333,7 +341,7 @@ bool VcdFile::parse_upscope() {
     pop_scope();
 
     if(!tokenizer_.expect("$end")) {
-        parse_error("expected $end for $upscope section");
+        PARSE_ERROR("expected $end for $upscope section");
         return false;
     }
 
@@ -349,14 +357,15 @@ bool VcdFile::parse_var() {
 
     tokenizer_.get(token);
     type = parse_var_type(token);
+
     if(type == Variable::UNKNOWN) {
-        parse_error("unknown variable type");
+        PARSE_ERROR("unknown variable type: %s", token);
         return false;
     }
 
     tokenizer_.get(token);
     if(sscanf(token, "%d", &size) != 1) {
-        parse_error("expected variable size");
+        PARSE_ERROR("expected variable size, but not found");
         return false;
     }
 
@@ -371,10 +380,10 @@ bool VcdFile::parse_var() {
     }
 
     if(strlen(name) == sizeof(name))
-        parse_warn("too long variable name, could have been clamped");
+        PARSE_WARN("too long variable name, could have been clamped (%s)", token);
 
     if(strlen(ident) == sizeof(ident))
-        parse_warn("too long identifier name, could have been clamped");
+        PARSE_WARN("too long variable identifier, could have been clamped (%s)", token);
 
     if(!ignore_case)
         to_lower_case(name);
@@ -385,16 +394,14 @@ bool VcdFile::parse_var() {
 }
 
 bool VcdFile::parse_not_handled(const char*section) {
-    // TODO use section name
-    parse_warn("section is not handled");
+    PARSE_WARN("section type '%s' is not handled", section);
 
     return true;
 }
 
-bool VcdFile::parse_skip_to_end(const char*section_name) {
+bool VcdFile::parse_skip_to_end(const char*section) {
     if(!skip_to_end()) {
-        // TODO use section name
-        parse_error("expected $end token");
+        PARSE_ERROR("expected $end token for section '%s'", section);
         return false;
     }
 
@@ -602,7 +609,7 @@ void VcdFile::add_variable(const char*name, const char*ident,
                 break;
 
             default:
-                parse_error("not implemented variable type, sorry");
+                PARSE_ERROR("not implemented variable type, sorry");
                 assert(false);
                 return;
         }
@@ -663,7 +670,7 @@ void VcdFile::add_variable(const char*name, const char*ident,
                 break;
 
             default:
-                parse_error("not implemented variable type, sorry");
+                PARSE_ERROR("not implemented variable type, sorry");
                 assert(false);
                 return;
         }

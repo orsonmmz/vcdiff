@@ -62,16 +62,6 @@ public:
     }
 
 private:
-    inline void parse_error(const std::string&msg) {
-        std::cerr << "Error: " << filename_ << ":"
-                  << line_number() << ": " << msg << std::endl;
-    }
-
-    inline void parse_warn(const std::string&msg) {
-        std::cerr << "Warning: " << filename_ << ":"
-                  << line_number() << ": " << msg << std::endl;
-    }
-
     inline void push_scope(const char*scope) {
         cur_scope_ = cur_scope_->make_scope(scope);
     }
