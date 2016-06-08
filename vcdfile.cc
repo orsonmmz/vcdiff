@@ -24,12 +24,12 @@
 #include <cstring>
 
 #define PARSE_WARN(x...)\
-    fprintf(stderr, "Warning: %s:%d: ", filename().c_str(), line_number());\
-    fprintf(stderr, x); fprintf(stderr, "\n");
+    { fprintf(stderr, "Warning: %s:%d: ", filename().c_str(), line_number());\
+        fprintf(stderr, x); fprintf(stderr, "\n"); }
 
 #define PARSE_ERROR(x...)\
-    fprintf(stderr, "Error: %s:%d: ", filename().c_str(), line_number());\
-    fprintf(stderr, x); fprintf(stderr, "\n");
+    { fprintf(stderr, "Error: %s:%d: ", filename().c_str(), line_number());\
+        fprintf(stderr, x); fprintf(stderr, "\n"); }
 
 using namespace std;
 
