@@ -62,8 +62,8 @@ public:
     }
 
 private:
-    inline void push_scope(const char*scope) {
-        cur_scope_ = cur_scope_->make_scope(scope);
+    inline void push_scope(Scope::scope_type_t type, const char*scope) {
+        cur_scope_ = cur_scope_->make_scope(type, scope);
     }
 
     inline void pop_scope() {
@@ -86,6 +86,8 @@ private:
     bool skip_to_end();
 
     Variable::var_type_t parse_var_type(const char*token) const;
+
+    Scope::scope_type_t parse_scope_type(const char*token) const;
 
     void add_variable(const char*name, const char*ident,
                       int size, Variable::var_type_t type);

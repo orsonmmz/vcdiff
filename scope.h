@@ -30,7 +30,12 @@ typedef std::map<std::string, Scope*> ScopeStringMap;
 
 class Scope {
 public:
-    Scope(const std::string&name, Scope*parent);
+    ///> Possible scope types in VCD files
+    enum scope_type_t {
+        BEGIN, FORK, FUNCTION, MODULE, TASK, UNKNOWN
+    };
+
+    Scope(scope_type_t scope_type, const std::string&name, Scope*parent);
     ~Scope();
 
     inline const std::string&name() const {
@@ -41,7 +46,11 @@ public:
         return full_name_;
     }
 
-    Scope*make_scope(const std::string&name);
+    inline scope_type_t type() const {
+        return scope_type_;
+    }
+
+    Scope*make_scope(scope_type_t type, const std::string&name);
     Scope*get_scope(const std::string&name);
 
     ScopeStringMap&scopes() {
@@ -65,6 +74,9 @@ private:
 
     // Full scope name, including the scopes hierarchy
     std::string full_name_;
+
+    // Scope kind
+    const scope_type_t scope_type_;
 
     // Subscopes
     ScopeStringMap scopes_;

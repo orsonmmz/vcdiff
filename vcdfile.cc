@@ -43,7 +43,7 @@ static void to_lower_case(char*str) {
 
 VcdFile::VcdFile(const char*filename)
     : filename_(filename), tokenizer_(filename),
-    root_("(" + filename_ + ")", NULL), cur_scope_(&root_),
+    root_(Scope::BEGIN, "(" + filename_ + ")", NULL), cur_scope_(&root_),
     timescale_(0), cur_timestamp_(0), next_timestamp_(0)
 {
 }
@@ -262,18 +262,11 @@ bool VcdFile::parse_enddefinitions() {
 }
 
 bool VcdFile::parse_scope() {
+    Scope::scope_type_t type;
     char*token;
 
-    // Scope type = begin | fork | function | module | task
     tokenizer_.get(token);
-
-    if(strcmp(token, "begin")
-            && strcmp(token, "fork")
-            && strcmp(token, "function")
-            && strcmp(token, "module")
-            && strcmp(token, "task")) {
-        PARSE_WARN("unknown scope type: %s", token);
-    }
+    type = parse_scope_type(token);
 
     // Scope name
     tokenizer_.get(token);
@@ -281,7 +274,7 @@ bool VcdFile::parse_scope() {
     if(!ignore_case)
         to_lower_case(token);
 
-    push_scope(token);
+    push_scope(type, token);
 
     if(!tokenizer_.expect("$end")) {
         PARSE_ERROR("expected $end for $scope section");
@@ -438,6 +431,17 @@ Variable::var_type_t VcdFile::parse_var_type(const char*token) const {
     if(!strcasecmp(token, "event"))     return Variable::EVENT;
 
     return Variable::UNKNOWN;
+}
+
+Scope::scope_type_t VcdFile::parse_scope_type(const char*token) const
+{
+    if(!strcasecmp(token, "module"))    return Scope::MODULE;
+    if(!strcasecmp(token, "begin"))     return Scope::BEGIN;
+    if(!strcasecmp(token, "function"))  return Scope::FUNCTION;
+    if(!strcasecmp(token, "task"))      return Scope::TASK;
+    if(!strcasecmp(token, "fork"))      return Scope::FORK;
+
+    return Scope::UNKNOWN;
 }
 
 void VcdFile::add_variable(const char*name, const char*ident,

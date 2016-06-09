@@ -23,9 +23,11 @@
 
 using namespace std;
 
-Scope::Scope(const string&name, Scope*parent)
-    : name_(name), parent_(parent)
+Scope::Scope(scope_type_t scope_type, const string&name, Scope*parent)
+    : name_(name), scope_type_(scope_type), parent_(parent)
 {
+    assert(scope_type != UNKNOWN);
+
     // Cache the full name, including hierarchy
     const Scope*s = parent_;
     full_name_ = name_;
@@ -49,10 +51,10 @@ Scope::~Scope() {
     }
 }
 
-Scope*Scope::make_scope(const string&name) {
+Scope*Scope::make_scope(scope_type_t type, const string&name) {
     pair<ScopeStringMap::iterator, bool> res;
 
-    res = scopes_.insert(make_pair(name, new Scope(name, this)));
+    res = scopes_.insert(make_pair(name, new Scope(type, name, this)));
     // Be sure that scope names are unique
     assert(res.second);
 
