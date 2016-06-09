@@ -354,16 +354,16 @@ public:
     void set_value(const Value&value) {
         prev_value_ = value_;
         value_ = value;
+        changed_ = (prev_value_ != value_);
     }
 
     bool changed() const {
-        // We cannot have a bool flag to notify about changes. If scalar is a
-        // part of a vector, then it might have the same value assigned.
-        return value_ != prev_value_;
+        return changed_;
     }
 
     void clear_transition() {
         prev_value_ = value_;
+        changed_ = false;
     }
 
     size_t hash() const {
@@ -386,6 +386,7 @@ public:
 
 private:
     Value value_, prev_value_;
+    bool changed_;
 };
 
 class Alias : public Variable {

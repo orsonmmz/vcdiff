@@ -200,7 +200,7 @@ void Vector::fill() {
 Scalar::Scalar(var_type_t type, Value::data_type_t data_type,
         const string&name, const string&identifier)
     : Variable(type, data_type, name, identifier),
-        value_(data_type), prev_value_(data_type) {
+        value_(data_type), prev_value_(data_type), changed_(false) {
     if(type == SUPPLY0)
         value_.data.bit = '0';
     else if(type == SUPPLY1)
