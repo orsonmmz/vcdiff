@@ -430,7 +430,7 @@ public:
     }
 
     size_t prev_hash() const {
-        return target_->hash();
+        return target_->prev_hash();
     }
 
     std::string value_str() const {
