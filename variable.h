@@ -352,7 +352,6 @@ public:
             const std::string&name = "", const std::string&identifier = "");
 
     void set_value(const Value&value) {
-        prev_value_ = value_;
         value_ = value;
         changed_ = (prev_value_ != value_);
     }
