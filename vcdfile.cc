@@ -125,6 +125,10 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
             return false;
         }
 
+        Value new_value;
+        string ident;
+        bool assign = false;
+
         switch(token[0]) {
             case '#':
                 if(sscanf(token, "#%lu", &tstamp) != 1) {
@@ -152,56 +156,22 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
                 break;
 
             case 'b':
-            {
-                // Get the new vector value
-                // (skip 'b', store only the new value)
-                string new_value(&token[1]);
+                // Get the new vector value (skip 'b', store only the new value)
+                new_value = Value(string(&token[1]));
 
                 // Get the variable identifier
                 tokenizer_.get(token);
-                string ident(token);
-
-                VarStringMap::iterator res = var_idents_.find(ident);
-                if(res == var_idents_.end()) {
-                    PARSE_ERROR("invalid variable identifier: %s", ident.c_str());
-                    return false;
-                }
-
-                Vector*vec = static_cast<Vector*>(res->second);
-                assert(vec->size() >= new_value.length() && vec->is_vector());
-                vec->set_value(Value(new_value));
-
-                if(const Link*link = vec->link())
-                    changes.insert(link);
-
-                DBG("%s: %s changed to %s",
-                        filename_.c_str(), vec->full_name().c_str(), new_value.c_str());
-            }
+                ident = string(token);
+                assign = true;
                 break;
 
             case 'r':
-            {
-                Value new_value((float) ::atof(&token[1]));
+                new_value = Value((float) ::atof(&token[1]));
 
                 // Get the variable identifier
                 tokenizer_.get(token);
-                string ident(token);
-
-                VarStringMap::iterator res = var_idents_.find(ident);
-                if(res == var_idents_.end()) {
-                    PARSE_ERROR("invalid variable identifier: %s", ident.c_str());
-                    return false;
-                }
-
-                Variable*var = res->second;
-                var->set_value(new_value);
-
-                if(const Link*link = var->link())
-                    changes.insert(link);
-
-                DBG("%s: %s changed to %s",
-                    filename_.c_str(), var->full_name().c_str(), string(new_value).c_str());
-            }
+                ident = string(token);
+                assign = true;
                 break;
 
             case '0':
@@ -212,27 +182,40 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
             case 'z':
             {
                 // Here the expected format is: one byte value, followed by
-                // a variable identifier
+                // a variable identifier, no spaces
                 assert(strlen(token) > 1);
 
-                Value new_value(token[0]);
-                string ident(&token[1]);
-
-                Variable*var = var_idents_[ident];
-                var->set_value(new_value);
-
-                if(const Link*link = var->link())
-                    changes.insert(link);
-
-                DBG("%s: %s changed to %s",
-                        filename_.c_str(), ident.c_str(), string(new_value).c_str());
-            }
+                new_value = Value(token[0]);
+                ident = string(&token[1]);
+                assign = true;
                 break;
+            }
 
             default:
                 assert(false);
                 PARSE_WARN("invalid entry: %s", token);
                 break;
+        }
+
+        if(assign) {
+            VarStringMap::iterator res = var_idents_.find(ident);
+            if(res == var_idents_.end()) {
+                // Some of variables are currently ignored if they
+                // are stored in an unsupported scope, so we have to
+                // mute the error for now
+                //PARSE_ERROR("invalid variable identifier: %s", ident.c_str());
+                continue;
+            }
+
+            Variable*var = res->second;
+            assert(var);
+            var->set_value(new_value);
+
+            if(const Link*link = var->link())
+                changes.insert(link);
+
+            DBG("%s: %s changed to %s", filename_.c_str(),
+                    var->full_name().c_str(), string(new_value).c_str());
         }
     }
 
