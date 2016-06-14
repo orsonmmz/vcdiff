@@ -238,10 +238,7 @@ void Comparator::check_value_changes() {
         } else {
             bool emitted_diff_header = false;
 
-            for(set<const Link*>::iterator it = changes.begin();
-                    it != changes.end(); ++it) {
-                const Link*link = *it;
-
+            for(const Link*link : changes) {
                 if(!link->compare()) {
                     if(!emitted_diff_header) {
                         cout << "diff #" << current_time << endl;
@@ -251,12 +248,14 @@ void Comparator::check_value_changes() {
 
                     cout << *link << endl;
                 }
+            }
+        }
 
-                // Clear the transition
-                if(!compare_states) {
-                    link->first()->clear_transition();
-                    link->second()->clear_transition();
-                }
+        // Clear transitions
+        if(!compare_states) {
+            for(const Link*link : changes) {
+                link->first()->clear_transition();
+                link->second()->clear_transition();
             }
         }
     }
