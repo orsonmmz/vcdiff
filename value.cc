@@ -120,11 +120,13 @@ Value&Value::operator=(const Value&other) {
     assert(type == other.type || type == UNDEFINED);
     assert(size >= other.size || type == UNDEFINED);
 
+    size = other.size;
+
     if(type == UNDEFINED) {
         type = other.type;
 
-        if(type == VECTOR)
-            data.vec = new bit_t[size];
+        if(type == VECTOR) {}
+            data.vec = new bit_t[other.size];
     }
 
     if(type == VECTOR) {
