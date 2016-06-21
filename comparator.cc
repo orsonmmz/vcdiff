@@ -267,19 +267,22 @@ bool Comparator::compare_and_match(Variable*var1, Variable*var2) {
             var2->full_name().c_str());
 
     if(var1->size() != var2->size()) {
-        DBG("different sizes");
+        cerr << "Warning: " << *var1 << " and " << *var2
+             << " have different sizes, they are not matched" << endl;
         return false;
     }
 
     if(!ignore_var_type && var1->type() != var2->type()) {
-        DBG("different types");
+        cerr << "Warning: " << *var1 << " and " << *var2
+             << " have different types, they are not matched" << endl;
         return false;
     }
 
     if(!ignore_var_index) {
         if(!var1->is_vector()) {
             if(var1->index() != var2->index()) {
-                DBG("different indexes");
+                cerr << "Warning: " << *var1 << " and " << *var2
+                     << " have different indexes, they are not matched" << endl;
                 return false;
             }
 
@@ -289,7 +292,8 @@ bool Comparator::compare_and_match(Variable*var1, Variable*var2) {
 
             if((vec1->left_idx() != vec2->left_idx())
                     || (vec1->right_idx() != vec2->right_idx())) {
-                DBG("different ranges");
+                cerr << "Warning: " << *var1 << " and " << *var2
+                     << " have different ranges, they are not matched" << endl;
                 return false;
             }
 
