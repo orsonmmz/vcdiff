@@ -50,6 +50,7 @@ public:
     inline void set_scope(Scope*scope) {
         assert(scope_ == NULL || scope_ == scope);
         scope_ = scope;
+        recache_var_name();
     }
 
     /**
@@ -134,7 +135,10 @@ public:
         link_ = link;
     }
 
-    // TODO
+    /**
+     * @brief Return the parent variable, if any. This variable is set
+     * only when the variable is set as a part of a vector.
+     */
     virtual const Variable*parent() const {
         return parent_;
     }

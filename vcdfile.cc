@@ -211,7 +211,15 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
             assert(var);
             var->set_value(new_value);
 
-            if(const Link*link = var->link())
+            const Link*link = NULL;
+
+            if(const Variable*parent = var->parent())
+                link = parent->link();
+
+            if(!link)
+                link = var->link();
+
+            if(link)
                 changes.insert(link);
 
             DBG("%s: %s changed to %s", filename_.c_str(),

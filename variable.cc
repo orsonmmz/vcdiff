@@ -38,6 +38,7 @@ Variable::Variable(var_type_t type, Value::data_type_t data_type,
 }
 
 void Variable::recache_var_name() {
+    assert(!name().empty());
     full_name_ = name() + full_index();
 }
 
@@ -86,6 +87,7 @@ void Vector::add_variable(int idx, Variable*var) {
 
     var->set_index(idx, this);
     children_[idx] = var;
+    recache_var_name();
 }
 
 void Vector::set_value(const Value&value) {
@@ -193,8 +195,11 @@ string Vector::index_str() const {
 
 
 void Vector::fill() {
-    for(int i = min_idx(); i <= max_idx(); ++i)
-        add_variable(i, new Scalar(type(), Value::BIT));
+    for(int i = min_idx(); i <= max_idx(); ++i) {
+        Scalar*s = new Scalar(type(), Value::BIT, name());
+        s->set_scope(scope());
+        add_variable(i, s);
+    }
 }
 
 Scalar::Scalar(var_type_t type, Value::data_type_t data_type,
@@ -226,6 +231,9 @@ Alias::Alias(const string&name, Variable*target)
 
 std::ostream&operator<<(std::ostream&out, const Variable&var) {
     Scope*scope = var.scope();
+
+    if(!scope && var.parent())
+        scope = var.parent()->scope();
 
     if(scope)
         out << scope->full_name() << ".";
