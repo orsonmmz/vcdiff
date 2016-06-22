@@ -297,6 +297,16 @@ bool Comparator::compare_and_match(Variable*var1, Variable*var2) {
                 return false;
             }
 
+            // Detect inverted ranges and fix them
+            if(vec1->left_idx() != vec2->left_idx()
+                    || vec1->right_idx() != vec2->right_idx()) {
+                // Prefer descending ranges
+                if(vec1->range_desc())
+                    vec2->reverse_range();
+                else
+                    vec1->reverse_range();
+            }
+
             // Match array elements (vec1 & vec2 ranges are equal)
             for(int i = vec1->min_idx(); i <= vec1->max_idx(); ++i) {
                 DBG("- comparing array elements for %s and %s",

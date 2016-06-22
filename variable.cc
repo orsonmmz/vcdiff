@@ -60,7 +60,7 @@ std::string Variable::full_index(bool last) const {
 Vector::Vector(var_type_t type, int left_idx, int right_idx,
         const string&name, const string&identifier)
     : Variable(type, Value::VECTOR, name, identifier),
-        left_idx_(left_idx), right_idx_(right_idx)
+        left_idx_(left_idx), right_idx_(right_idx), reversed_range_(false)
 {
 }
 
@@ -96,12 +96,15 @@ void Vector::set_value(const Value&value) {
 
     int new_val_idx = value.size - 1;
 
+    int left_idx = reversed_range_ ? left_idx_ : right_idx_;
+    int right_idx = reversed_range_ ? right_idx_ : left_idx_;
+
     // Copy the new value and set the remaining bits to 0,
     // update the children variables values
     // TODO this could be simplified
     if(!ident().empty()) {
-        if(range_asc()) {
-            for(int i = left_idx_; i <= right_idx_; ++i) {
+        if(left_idx < right_idx) {
+            for(int i = left_idx; i <= right_idx; ++i) {
                 if(new_val_idx >= 0) {
                     children_[i]->set_value(value.data.vec[new_val_idx]);
                     --new_val_idx;
@@ -111,7 +114,7 @@ void Vector::set_value(const Value&value) {
             }
 
         } else {    // descending range
-            for(int i = left_idx_; i >= right_idx_; --i) {
+            for(int i = left_idx; i >= right_idx; --i) {
                 if(new_val_idx >= 0) {
                     children_[i]->set_value(value.data.vec[new_val_idx]);
                     --new_val_idx;

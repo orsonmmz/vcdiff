@@ -264,6 +264,22 @@ public:
 
     void add_variable(int idx, Variable*var);
 
+    void reverse_range() {
+        reversed_range_ = !reversed_range_;
+        std::swap(left_idx_, right_idx_);
+        recache_var_name();
+    }
+
+    ///> Is the vector range ascending?
+    inline bool range_asc() const {
+        return left_idx_ < right_idx_;
+    }
+
+    ///> Is the vector range descending?
+    inline bool range_desc() const {
+        return left_idx_ > right_idx_;
+    }
+
     unsigned int size() const {
         assert(vec_range_size() == children_.size());
 
@@ -330,21 +346,14 @@ private:
         return range_asc() ? idx - left_idx_ : right_idx_ - idx;
     }
 
-    ///> Is the vector range ascending?
-    inline bool range_asc() const {
-        return left_idx_ < right_idx_;
-    }
-
-    ///> Is the vector range descending?
-    inline bool range_desc() const {
-        return left_idx_ > right_idx_;
-    }
-
     ///> Vector left range (vector [left_idx:right_idx])
     int left_idx_;
 
     ///> Vector right range (vector [left_idx:right_idx])
     int right_idx_;
+
+    ///> Has the original range been reversed?
+    bool reversed_range_;
 
     ///> Variables that constitute the vector
     std::map<int, Variable*> children_;
