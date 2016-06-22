@@ -94,35 +94,37 @@ void Vector::set_value(const Value&value) {
     assert(value.size <= size());
     assert(value.type == Value::VECTOR);
 
-    int new_val_idx = value.size - 1;
+    if(ident().empty())
+        return;
 
-    int left_idx = reversed_range_ ? left_idx_ : right_idx_;
-    int right_idx = reversed_range_ ? right_idx_ : left_idx_;
+    // Restore original indexes for assignment
+    int left_idx = reversed_range_ ? right_idx_ : left_idx_;
+    int right_idx = reversed_range_ ? left_idx_ : right_idx_;
+    bool asc = left_idx < right_idx;
 
-    // Copy the new value and set the remaining bits to 0,
-    // update the children variables values
-    // TODO this could be simplified
-    if(!ident().empty()) {
-        if(left_idx < right_idx) {
-            for(int i = left_idx; i <= right_idx; ++i) {
-                if(new_val_idx >= 0) {
-                    children_[i]->set_value(value.data.vec[new_val_idx]);
-                    --new_val_idx;
-                } else {
-                    children_[i]->set_value('0');
-                }
-            }
+    // Value assigned for not specified bits (if the new value has less bits
+    // than the target variable)
+    bit_t default_val = value.data.vec[0] == '1' ? '0' : value.data.vec[0];
 
-        } else {    // descending range
-            for(int i = left_idx; i >= right_idx; --i) {
-                if(new_val_idx >= 0) {
-                    children_[i]->set_value(value.data.vec[new_val_idx]);
-                    --new_val_idx;
-                } else {
-                    children_[i]->set_value('0');
-                }
-            }
+    int new_idx = value.size - 1;
+    int idx = right_idx;
+    int i = size();
+
+    while(i > 0) {
+        // Either copy the new value or assign the default value
+        if(new_idx >= 0) {
+            children_[idx]->set_value(value.data.vec[new_idx]);
+            --new_idx;
+        } else {
+            children_[idx]->set_value(default_val);
         }
+
+        if(asc)
+            --idx;
+        else
+            ++idx;
+
+        --i;
     }
 }
 
