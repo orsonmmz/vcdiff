@@ -290,8 +290,8 @@ bool Comparator::compare_and_match(Variable*var1, Variable*var2) {
             Vector*vec1 = static_cast<Vector*>(var1);
             Vector*vec2 = static_cast<Vector*>(var2);
 
-            if((vec1->left_idx() != vec2->left_idx())
-                    || (vec1->right_idx() != vec2->right_idx())) {
+            if((vec1->min_idx() != vec2->min_idx())
+                    || (vec1->max_idx() != vec2->max_idx())) {
                 cerr << "Warning: " << *var1 << " and " << *var2
                      << " have different ranges, they are not matched" << endl;
                 return false;
