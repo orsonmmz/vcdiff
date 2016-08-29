@@ -38,7 +38,7 @@ Variable::Variable(var_type_t type, Value::data_type_t data_type,
 }
 
 void Variable::recache_var_name() {
-    assert(!name().empty());
+    //assert(!name().empty());
     full_name_ = name() + full_index();
 }
 
