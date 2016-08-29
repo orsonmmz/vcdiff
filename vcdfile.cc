@@ -44,7 +44,7 @@ static void to_lower_case(char*str) {
 VcdFile::VcdFile(const char*filename)
     : filename_(filename), tokenizer_(filename),
     root_(Scope::BEGIN, "(" + filename_ + ")", NULL), cur_scope_(&root_),
-    timescale_(0), cur_timestamp_(0), next_timestamp_(0)
+    timescale_(0), cur_timestamp_(0), next_timestamp_(0), ignore_scope_(false)
 {
 }
 
@@ -262,10 +262,16 @@ bool VcdFile::parse_scope() {
     // Scope name
     tokenizer_.get(token);
 
-    if(!ignore_case)
-        to_lower_case(token);
+    ignore_scope_ = (type == Scope::MODULE && skip_module)
+            || (type == Scope::FUNCTION && skip_function)
+            || (type == Scope::TASK && skip_task);
 
-    push_scope(type, token);
+    if(!ignore_scope_) {
+        if(!ignore_case)
+            to_lower_case(token);
+
+        push_scope(type, token);
+    }
 
     if(!tokenizer_.expect("$end")) {
         PARSE_ERROR("expected $end for $scope section");
@@ -322,7 +328,8 @@ bool VcdFile::parse_timescale() {
 }
 
 bool VcdFile::parse_upscope() {
-    pop_scope();
+    if(!ignore_scope_)
+        pop_scope();
 
     if(!tokenizer_.expect("$end")) {
         PARSE_ERROR("expected $end for $upscope section");
@@ -372,7 +379,8 @@ bool VcdFile::parse_var() {
     if(!ignore_case)
         to_lower_case(name);
 
-    add_variable(name, ident, size, type);
+    if(!ignore_scope_)
+        add_variable(name, ident, size, type);
 
     return true;
 }

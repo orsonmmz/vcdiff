@@ -100,6 +100,9 @@ private:
     int timescale_;
     unsigned long cur_timestamp_, next_timestamp_;
     VarStringMap var_idents_;
+
+    // Flag to indicate the current scope as ignored
+    bool ignore_scope_;
 };
 
 #endif /* VCDFILE_H */

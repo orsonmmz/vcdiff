@@ -23,6 +23,10 @@ extern bool ignore_case;
 extern bool ignore_var_type;
 extern bool ignore_var_index;
 
+extern bool skip_module;
+extern bool skip_function;
+extern bool skip_task;
+
 extern bool warn_missing_scopes;
 extern bool warn_missing_vars;
 extern bool warn_missing_tstamps;

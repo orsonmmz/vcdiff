@@ -31,11 +31,11 @@
 #include <cstring>
 #include <unistd.h>
 
-#define VERSION "1.0c"
+#define VERSION "1.1"
 
 using namespace std;
 
-struct option {
+struct option_t {
     const char*name;
     bool*bool_switch;
     const char*desc;
@@ -45,7 +45,7 @@ struct option {
 bool ignore_case        = false;
 bool ignore_var_type    = false;
 bool ignore_var_index   = false;
-option ignore_options[] = {
+option_t ignore_options[] = {
     { "case",   &ignore_case,
         "Case-insensitive variable matching (e.g. variable to VaRiAbLe)." },
     { "type",   &ignore_var_type,
@@ -55,6 +55,15 @@ option ignore_options[] = {
     { NULL, NULL }
 };
 
+bool skip_module        = false;
+bool skip_function      = false;
+bool skip_task          = false;
+option_t skip_options[] = {
+    { "module",     &skip_module,   "\tSkip module scopes." },
+    { "function",   &skip_function, "Skip function scopes." },
+    { "task",       &skip_task,     "\tSkip task scopes." }
+};
+
 bool warn_missing_scopes    = true;
 bool warn_missing_vars      = true;
 bool warn_missing_tstamps   = true;
@@ -62,7 +71,7 @@ bool warn_duplicate_vars    = true;
 bool warn_unexpected_tokens = true;
 bool warn_size_mismatch     = true;
 bool warn_type_mismatch     = true;
-option warn_options[] = {
+option_t warn_options[] = {
     { "no-missing-scope",  &warn_missing_scopes,
         "Do not warn about scopes that do not occur in one of the files." },
     { "no-missing-var",    &warn_missing_vars,
@@ -86,14 +95,20 @@ bool test_mode = false;
 //bool show_unmatched_vars = false;    // TODO
 //bool match_individual_scalars = false; // TODO
 
-static void disable_all_warnings() {
-    for(option*opt_ptr = warn_options; opt_ptr->name; ++opt_ptr) {
+static void disable_all(option_t* options) {
+    for(option_t*opt_ptr = options; opt_ptr->name; ++opt_ptr) {
         *opt_ptr->bool_switch = false;
     }
 }
 
+static void enable_all(option_t* options) {
+    for(option_t*opt_ptr = options; opt_ptr->name; ++opt_ptr) {
+        *opt_ptr->bool_switch = true;
+    }
+}
+
 int main(int argc, char*argv[]) {
-    option*opt_ptr = NULL;
+    option_t*opt_ptr = NULL;
     int opt;
 
     if(argc < 3 || !strcmp(argv[1], "--help")) {
@@ -104,12 +119,19 @@ int main(int argc, char*argv[]) {
 
         cerr << "Options: " << endl;
 
-        cerr << "-s\t\t\tCompares states instead of transitions." << endl;
+        cerr << "-s\t\t\t\tCompares states instead of transitions." << endl;
 
         cerr << endl;
-        cerr << "-r<flag>\t\tModifies rules when mapping variables between files, "
+        cerr << "-r<flag>\t\t\tModifies rules when mapping variables between files, "
             "<flag> might be:" << endl;
         for(opt_ptr = ignore_options; opt_ptr->name; ++opt_ptr)
+            cerr << "\t" << opt_ptr->name << "\t\t\t" << opt_ptr->desc << endl;
+        cerr << "\tall\t\t\tApplies all above rules." << endl;
+
+        cerr << endl;
+        cerr << "-S<flag>\t\t\tSkips certain scopes, "
+            "<flag> might be:" << endl;
+        for(opt_ptr = skip_options; opt_ptr->name; ++opt_ptr)
             cerr << "\t" << opt_ptr->name << "\t\t" << opt_ptr->desc << endl;
 
         cerr << endl;
@@ -121,10 +143,23 @@ int main(int argc, char*argv[]) {
         return 0;
     }
 
-    while((opt = getopt(argc, argv, "r:W:s")) != -1) {
+    while((opt = getopt(argc, argv, "r:S:W:s")) != -1) {
         switch(opt) {
             case 'r':
                 for(opt_ptr = ignore_options; opt_ptr->name; ++opt_ptr) {
+                    if(!strcmp(optarg, opt_ptr->name)) {
+                        *opt_ptr->bool_switch = true;
+                        break;
+                    }
+                }
+
+                // Enable all rules
+                if(!strcmp(optarg, "all"))
+                    enable_all(ignore_options);
+                break;
+
+            case 'S':
+                for(opt_ptr = skip_options; opt_ptr->name; ++opt_ptr) {
                     if(!strcmp(optarg, opt_ptr->name)) {
                         *opt_ptr->bool_switch = true;
                         break;
@@ -142,7 +177,7 @@ int main(int argc, char*argv[]) {
 
                 // Disable all warnings
                 if(!strcmp(optarg, "no-all"))
-                    disable_all_warnings();
+                    disable_all(warn_options);
                 break;
 
             case 's':
@@ -152,7 +187,7 @@ int main(int argc, char*argv[]) {
     }
 
     if(getenv("TEST_VCDIFF")) {
-        disable_all_warnings();
+        disable_all(warn_options);
         test_mode = true;
     }
 
