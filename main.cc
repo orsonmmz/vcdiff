@@ -31,7 +31,7 @@
 #include <cstring>
 #include <unistd.h>
 
-#define VERSION "1.0b"
+#define VERSION "1.0c"
 
 using namespace std;
 
@@ -47,11 +47,11 @@ bool ignore_var_type    = false;
 bool ignore_var_index   = false;
 option ignore_options[] = {
     { "case",   &ignore_case,
-        "Case-insensitive name mapping (e.g. variable to VaRiAbLe)." },
+        "Case-insensitive variable matching (e.g. variable to VaRiAbLe)." },
     { "type",   &ignore_var_type,
-        "Enable mapping different, but compatible types (e.g. integer to reg[31:0])." },
+        "Enable matching different, but compatible types (e.g. integer to reg[31:0])." },
     { "index",  &ignore_var_index,
-        "Enable mapping different index ranges (e.g. reg[3:0] to reg[4:1])." },
+        "Enable matching variables of the same size, but different index ranges (e.g. reg[3:0] to reg[4:1])." },
     { NULL, NULL }
 };
 
@@ -61,16 +61,16 @@ bool warn_missing_tstamps   = true;
 bool warn_duplicate_vars    = true;
 bool warn_unexpected_tokens = true;
 option warn_options[] = {
-    { "missing-scope",  &warn_missing_scopes,
+    { "no-missing-scope",  &warn_missing_scopes,
         "Do not warn about scopes that do not occur in one of the files." },
-    { "missing-var",    &warn_missing_vars,
-        "Do not warn about variables that do not occur in one of the files." },
-    { "missing-tstamp", &warn_missing_tstamps,
+    { "no-missing-var",    &warn_missing_vars,
+        "\tDo not warn about variables that do not occur in one of the files." },
+    { "no-missing-tstamp", &warn_missing_tstamps,
         "Do not warn about timestamps that do not occur in one of the files." },
-    { "dup-var",        &warn_duplicate_vars,
+    { "no-alias",        &warn_duplicate_vars,
         "\tDo not warn about duplicated variables (it is normal in VCD files)." },
-    { "unexp-token",    &warn_unexpected_tokens,
-        "Do not warn about unexpected tokens." },
+    { "no-unexp-token",    &warn_unexpected_tokens,
+        "\tDo not warn about unexpected tokens." },
     { NULL, NULL }
 };
 
@@ -107,10 +107,10 @@ int main(int argc, char*argv[]) {
             cerr << "\t" << opt_ptr->name << "\t\t" << opt_ptr->desc << endl;
 
         cerr << endl;
-        cerr << "-W<flag>\t\tDisables certain warnings, <flag> might be:" << endl;
+        cerr << "-W<flag>\t\t\tDisables certain warnings, <flag> might be:" << endl;
         for(opt_ptr = warn_options; opt_ptr->name; ++opt_ptr)
             cerr << "\t" << opt_ptr->name << "\t" << opt_ptr->desc << endl;
-        cerr << "\tall\t\tDisables all warnings." << endl;
+        cerr << "\tno-all\t\t\tDisables all warnings." << endl;
 
         return 0;
     }
