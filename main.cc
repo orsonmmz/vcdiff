@@ -135,7 +135,7 @@ int main(int argc, char*argv[]) {
                 }
 
                 // Disable all warnings
-                if(!strcmp(optarg, "all"))
+                if(!strcmp(optarg, "no-all"))
                     disable_all_warnings();
                 break;
 
