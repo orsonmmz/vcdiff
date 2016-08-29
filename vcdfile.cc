@@ -437,10 +437,10 @@ Scope::scope_type_t VcdFile::parse_scope_type(const char*token) const
 
 void VcdFile::add_variable(const char*name, const char*ident,
                     int size, Variable::var_type_t type) {
+    // Some parameter and real variables have 0 size
     assert(size > 0 || type == Variable::REAL || type == Variable::PARAMETER);
 
     string base_name;
-    // Size == 0 for real type variables
     int left_idx = size > 0 ? size - 1 : 0;
     int right_idx = 0;
     list<int>idxs;
@@ -611,6 +611,12 @@ void VcdFile::add_variable(const char*name, const char*ident,
                 } else {
                     assert(false);
                 }
+                break;
+
+            case Variable::REAL:
+                var_ident = new Scalar(Variable::REAL, Value::REAL, base_name, ident);
+                var_name = var_ident;
+                size = 1;
                 break;
 
             default:
