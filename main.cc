@@ -60,6 +60,8 @@ bool warn_missing_vars      = true;
 bool warn_missing_tstamps   = true;
 bool warn_duplicate_vars    = true;
 bool warn_unexpected_tokens = true;
+bool warn_size_mismatch     = true;
+bool warn_type_mismatch     = true;
 option warn_options[] = {
     { "no-missing-scope",  &warn_missing_scopes,
         "Do not warn about scopes that do not occur in one of the files." },
@@ -71,6 +73,10 @@ option warn_options[] = {
         "\tDo not warn about duplicated variables (it is normal in VCD files)." },
     { "no-unexp-token",    &warn_unexpected_tokens,
         "\tDo not warn about unexpected tokens." },
+    { "no-size-mismatch",  &warn_size_mismatch,
+        "Do not warn about variable size mismatch." },
+    { "no-type-mismatch",  &warn_type_mismatch,
+        "Do not warn about variable type mismatch." },
     { NULL, NULL }
 };
 

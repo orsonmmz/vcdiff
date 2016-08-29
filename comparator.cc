@@ -267,14 +267,18 @@ bool Comparator::compare_and_match(Variable*var1, Variable*var2) {
             var2->full_name().c_str());
 
     if(var1->size() != var2->size()) {
+        if(warn_size_mismatch) {
         cerr << "Warning: " << *var1 << " and " << *var2
              << " have different sizes, they are not matched" << endl;
+        }
         return false;
     }
 
     if(!ignore_var_type && var1->type() != var2->type()) {
-        cerr << "Warning: " << *var1 << " and " << *var2
-             << " have different types, they are not matched" << endl;
+        if(warn_type_mismatch) {
+            cerr << "Warning: " << *var1 << " and " << *var2
+                << " have different types, they are not matched" << endl;
+        }
         return false;
     }
 

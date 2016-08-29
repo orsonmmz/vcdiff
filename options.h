@@ -28,6 +28,8 @@ extern bool warn_missing_vars;
 extern bool warn_missing_tstamps;
 extern bool warn_duplicate_vars;
 extern bool warn_unexpected_tokens;
+extern bool warn_size_mismatch;
+extern bool warn_type_mismatch;
 
 extern bool compare_states;
 
