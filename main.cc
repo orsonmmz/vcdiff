@@ -191,8 +191,19 @@ int main(int argc, char*argv[]) {
         test_mode = true;
     }
 
-    VcdFile file1(argv[argc-2]);
-    VcdFile file2(argv[argc-1]);
+    VcdFile file1(argv[argc - 2]);
+
+    if(!file1.valid()) {
+        std::cerr << "Error: Could not open file " << file1.filename() << std::endl;
+        return 1;
+    }
+
+    VcdFile file2(argv[argc - 1]);
+
+    if(!file2.valid()) {
+        std::cerr << "Error: Could not open file " << file2.filename() << std::endl;
+        return 1;
+    }
 
     Comparator comp(file1, file2);
     comp.compare();

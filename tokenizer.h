@@ -55,7 +55,6 @@ public:
     }
 
     inline bool valid() const {
-        assert(file_.good() || file_.eof());
         return file_.good();
     }
 
