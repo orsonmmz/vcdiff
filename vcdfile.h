@@ -72,11 +72,13 @@ private:
     }
 
     // Parsers for specific header sections
+    bool parse_dumpvars();
     bool parse_enddefinitions();
     bool parse_scope();
     bool parse_timescale();
     bool parse_upscope();
     bool parse_var();
+    std::pair<std::string, Value> parse_var_change();
 
     // Generic functions to handle particular header sections
     bool parse_not_handled(const char*section);
@@ -91,6 +93,11 @@ private:
 
     void add_variable(const char*name, const char*ident,
                       int size, Variable::var_type_t type);
+
+    Variable*find_variable(const std::string&ident) const {
+        auto it = var_idents_.find(ident);
+        return it != var_idents_.end() ? it->second : nullptr;
+    }
 
     // TODO comments
     const std::string filename_;

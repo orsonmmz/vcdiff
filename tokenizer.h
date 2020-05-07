@@ -1,5 +1,5 @@
 /*
- * Copyright CERN 2016
+ * Copyright CERN 2016-2017
  * @author Maciej Suminski (maciej.suminski@cern.ch)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -37,6 +37,20 @@ public:
     int get(char*&dest);
 
     /*
+     * @brief Reverts the last get() operation. Only the last token can be
+     * reverted.
+     * @return True in case of success.
+     */
+    bool put() {
+        if(!buf_prev_)
+            return false;
+
+        buf_cur_ = buf_prev_;
+        buf_prev_ = nullptr;
+        return true;
+    }
+
+    /*
      * @brief Gets a token, compares with the expected one and returns
      * the comparison result (true if there is a match).
      * @param token is the expected token.
@@ -46,7 +60,8 @@ public:
     /*
      * @brief Returns the current token, without reading another one.
      */
-    inline const char*current() const {
+    inline const char*peek() {
+        skip_whitespace();
         return buf_cur_;
     }
 
@@ -82,6 +97,9 @@ private:
 
     // Pointer to the current token
     char*buf_cur_;
+
+    // Pointer to the previous token
+    char*buf_prev_;
 
     // Pointer to the next token
     char*buf_ptr_;

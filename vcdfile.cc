@@ -60,6 +60,13 @@ bool VcdFile::parse_header() {
             return false;
         }
 
+        // Check if we reached the place where timestamps start
+        if(token[0] == '#') {
+            tokenizer_.put();        // TODO check
+            return true;
+        }
+
+        // Header parsing
         if(!strcmp(token, "$var")) {
             result = parse_var();
 
@@ -70,8 +77,7 @@ bool VcdFile::parse_header() {
             result = parse_upscope();
 
         } else if(!strcmp(token, "$enddefinitions")) {
-            // Finished processing the header
-            return parse_enddefinitions();
+            result = parse_enddefinitions();
 
         } else if(!strcmp(token, "$timescale")) {
             result = parse_timescale();
@@ -86,8 +92,7 @@ bool VcdFile::parse_header() {
             result = parse_skip_to_end(&token[1]);
 
         } else if(!strcmp(token, "$dumpvars")) {
-            // Do nothing, the values are going to be initialized anyway
-            result = true;
+            result = parse_dumpvars();
 
         } else if(!strcmp(token, "$dumpon")) {
             result = parse_not_handled(&token[1]);
@@ -155,45 +160,13 @@ bool VcdFile::next_delta(set<const Link*>&changes) {
                 }
                 break;
 
-            case 'b':
-                // Get the new vector value (skip 'b', store only the new value)
-                new_value = Value(string(&token[1]));
-
-                // Get the variable identifier
-                tokenizer_.get(token);
-                ident = string(token);
-                assign = true;
-                break;
-
-            case 'r':
-                new_value = Value((float) ::atof(&token[1]));
-
-                // Get the variable identifier
-                tokenizer_.get(token);
-                ident = string(token);
-                assign = true;
-                break;
-
-            case '0':
-            case '1':
-            case 'X':
-            case 'Z':
-            case 'x':
-            case 'z':
-            {
-                // Here the expected format is: one byte value, followed by
-                // a variable identifier, no spaces
-                assert(strlen(token) > 1);
-
-                new_value = Value(token[0]);
-                ident = string(&token[1]);
-                assign = true;
-                break;
-            }
-
             default:
-                assert(false);
-                PARSE_WARN("invalid entry: %s", token);
+                tie(ident, new_value) = parse_var_change();
+
+                if(ident.empty() || new_value.type == Value::UNDEFINED) {
+                    assert(false);
+                    PARSE_WARN("invalid entry: %s", token);
+                }
                 break;
         }
 
@@ -240,6 +213,37 @@ void VcdFile::show_state() const {
     }
 
     cout << endl;
+}
+
+bool VcdFile::parse_dumpvars() {
+    char*token;
+
+    while(true) {
+        if(tokenizer_.get(token) == 0) {
+            PARSE_ERROR("unexpected end of file");
+            return false;
+        }
+
+        if(!strcmp(token, "$end")) {
+            return true;
+        } else {
+            tokenizer_.put();
+            auto init = parse_var_change();
+
+            if(init.first.empty() || init.second.type == Value::UNDEFINED)
+                break;
+
+            Variable*var = find_variable(init.first);
+
+            if(var == nullptr)
+                break;
+
+            var->set_value(init.second);
+        }
+    }
+
+    PARSE_ERROR("expected variable assignment: %s", token);
+    return false;
 }
 
 bool VcdFile::parse_enddefinitions() {
@@ -385,6 +389,54 @@ bool VcdFile::parse_var() {
     return true;
 }
 
+pair<string, Value> VcdFile::parse_var_change() {
+    char*token;
+    pair<string, Value> ret;
+
+    if(tokenizer_.get(token) == 0)
+        return ret;
+
+    switch(token[0]) {
+        case 'b':
+            // Get the new vector value (skip 'b', store only the new value)
+            ret.second = Value(string(&token[1]));
+
+            // Get the variable identifier
+            tokenizer_.get(token);
+            assert(strlen(token) > 1);
+            ret.first = string(token);
+            break;
+
+        case 'r':
+            ret.second = Value((float) ::atof(&token[1]));
+
+            // Get the variable identifier
+            tokenizer_.get(token);
+            assert(strlen(token) > 1);
+            ret.first = string(token);
+            break;
+
+        case '0':
+        case '1':
+        case 'X':
+        case 'Z':
+        case 'x':
+        case 'z':
+        {
+            // Here the expected format is: one byte value, followed by
+            // a variable identifier, no spaces
+            // e.g. 1aaaa sets aaaa variable to 1
+            assert(strlen(token) > 1);
+
+            ret.second = Value(token[0]);
+            ret.first = string(&token[1]);
+            break;
+        }
+    }
+
+    return ret;
+}
+
 bool VcdFile::parse_not_handled(const char*section) {
     PARSE_WARN("section type '%s' is not handled", section);
 
@@ -403,7 +455,7 @@ bool VcdFile::parse_skip_to_end(const char*section) {
 bool VcdFile::skip_to_end() {
     while(!tokenizer_.expect("$end")) {
         // Another section detected
-        if(*tokenizer_.current() == '$')
+        if(*tokenizer_.peek() == '$')
             return false;
     }
 

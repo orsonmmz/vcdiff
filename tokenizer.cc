@@ -1,5 +1,5 @@
 /*
- * Copyright CERN 2016
+ * Copyright CERN 2016-2017
  * @author Maciej Suminski (maciej.suminski@cern.ch)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,9 +28,11 @@ Tokenizer::Tokenizer(const string&filename)
     buf_ = new char[buf_size_];
     buf_ptr_ = buf_;
     buf_cur_ = buf_;
+    buf_prev_ = nullptr;
 
     // Mark buffer as empty
     *buf_ptr_ = 0;
+    fill_if_empty();
 }
 
 Tokenizer::~Tokenizer() {
@@ -39,8 +41,6 @@ Tokenizer::~Tokenizer() {
 }
 
 int Tokenizer::get(char*&dest) {
-    skip_whitespace();
-
     if(!fill_if_empty()) {
         dest = NULL;
         return 0;
@@ -48,6 +48,7 @@ int Tokenizer::get(char*&dest) {
 
     // Set the pointer to a new token
     dest = buf_ptr_;
+    buf_prev_ = buf_cur_;
     buf_cur_ = buf_ptr_;
 
     // Move to the next token
@@ -76,8 +77,6 @@ bool Tokenizer::expect(const char*token) {
     if(!fill_if_empty())
         return false;
 
-    skip_whitespace();
-
     // Here could be strcmp, but we need to move buf_ptr_ later,
     // so save some time first comparing string, and then computing its length
     while(*buf_ptr_ && *token) {
@@ -97,8 +96,11 @@ bool Tokenizer::expect(const char*token) {
 }
 
 bool Tokenizer::fill_if_empty() {
+    skip_whitespace();
+
     if(*buf_ptr_ == 0 || *buf_ptr_ == '\n' || *buf_ptr_ == '\r') {
         buf_ptr_ = buf_;
+        buf_prev_ = nullptr;
         buf_cur_ = buf_;
         buf_[0] = 0;
 
